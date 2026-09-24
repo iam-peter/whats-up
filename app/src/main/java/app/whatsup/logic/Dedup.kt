@@ -1,6 +1,8 @@
 package app.whatsup.logic
 
+import app.whatsup.config.GlobalConfig
 import app.whatsup.model.CalendarEntry
+import app.whatsup.model.ChipPattern
 import app.whatsup.model.EntryKind
 import java.time.LocalDate
 
@@ -44,6 +46,17 @@ object BirthdayMerger {
             contactNames[e.firstDay].orEmpty().any { it.isNotEmpty() && title.contains(it) }
         }
         return fromContacts + calendarOnly
+    }
+}
+
+object PatternAssigner {
+    /** Spec FR-E6: patterns come from the entry's calendar, or the contacts setting. */
+    fun assign(entries: List<CalendarEntry>, global: GlobalConfig): List<CalendarEntry> = entries.map { e ->
+        val pattern = when (val id = e.calendarId) {
+            null -> if (e.kind == EntryKind.BIRTHDAY) global.contactBirthdayPattern else ChipPattern.NONE
+            else -> global.calendarPatterns[id] ?: ChipPattern.NONE
+        }
+        if (pattern == e.pattern) e else e.copy(pattern = pattern)
     }
 }
 

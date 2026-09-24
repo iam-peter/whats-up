@@ -38,4 +38,11 @@
     <string name="calendars">Calendars</string>
     <string name="use_default_calendars">Use default calendars</string>
     <string name="save">Save</string>
+    <string name="patterns">Patterns</string>
+    <string name="contact_birthdays">Birthdays from contacts</string>
+    <string name="pattern_none">No pattern</string>
+    <string name="pattern_stripes">Stripes</string>
+    <string name="pattern_dots">Dots</string>
+    <string name="pattern_grid">Grid</string>
+    <string name="pattern_zigzag">Zigzag</string>
 </resources>

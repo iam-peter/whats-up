@@ -2,6 +2,7 @@ package app.whatsup.logic
 
 import app.whatsup.config.WidgetConfig
 import app.whatsup.model.CalendarEntry
+import app.whatsup.model.ChipPattern
 import app.whatsup.model.EntryKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -89,6 +90,16 @@ class GridModelBuilderTest {
     @Test fun `icon stays when the name still fits`() {
         val chip = build(listOf(birthday("Bo")), w = 380f, h = 60f).weeks[0][3].chips.single()
         assertEquals(ICON_PREFIX + "Bo", chip.text)
+    }
+
+    @Test fun `patterns reach the chips, aggregated birthdays use the first one`() {
+        val entries = listOf(
+            CalendarEntry(EntryKind.BIRTHDAY, "Anna", 0, today, pattern = ChipPattern.DOTS),
+            CalendarEntry(EntryKind.BIRTHDAY, "Ben", 0, today, pattern = ChipPattern.GRID),
+            timed("Standup", 9).copy(pattern = ChipPattern.STRIPES),
+        )
+        val chips = build(entries, w = 800f).weeks[0][3].chips
+        assertEquals(listOf(ChipPattern.DOTS, ChipPattern.STRIPES), chips.map { it.pattern })
     }
 
     @Test fun `overflow yields plus N and nothing is longer than allowed`() {

@@ -3,6 +3,7 @@ package app.whatsup.logic
 import app.whatsup.config.Density
 import app.whatsup.config.WidgetConfig
 import app.whatsup.model.CalendarEntry
+import app.whatsup.model.ChipPattern
 import app.whatsup.model.EntryKind
 import java.time.DayOfWeek
 import java.time.Instant
@@ -146,10 +147,12 @@ class GridModelBuilder(
         when (birthdays.size) {
             0 -> Unit
             1 -> birthdays.single().let { b ->
-                result += birthdayChip(labels.birthdayText(b.title, b.age), b.color, day, isPast, showIcons)
+                result += birthdayChip(labels.birthdayText(b.title, b.age), b.color, b.pattern, day, isPast, showIcons)
             }
             // Spec D-3: several birthdays are always aggregated.
-            else -> result += birthdayChip(labels.birthdays(birthdays.size), birthdays.first().color, day, isPast, showIcons)
+            else -> birthdays.first().let { b ->
+                result += birthdayChip(labels.birthdays(birthdays.size), b.color, b.pattern, day, isPast, showIcons)
+            }
         }
         for (e in events) {
             val timed = e.kind == EntryKind.TIMED
@@ -162,19 +165,28 @@ class GridModelBuilder(
                 color = e.color,
                 style = if (timed) ChipStyle.OUTLINED else ChipStyle.FILLED,
                 dimmed = isPast || ended,
+                pattern = e.pattern,
                 target = e.eventId?.let { ChipTarget.Event(it, e.start, e.end) } ?: ChipTarget.CalendarDay(day),
             )
         }
         return result
     }
 
-    private fun birthdayChip(text: String, color: Int, day: LocalDate, isPast: Boolean, showIcons: Boolean) = Chip(
+    private fun birthdayChip(
+        text: String,
+        color: Int,
+        pattern: ChipPattern,
+        day: LocalDate,
+        isPast: Boolean,
+        showIcons: Boolean,
+    ) = Chip(
         text = if (showIcons) ICON_PREFIX + text else text,
         maxLines = 1,
         color = color,
         style = ChipStyle.FILLED,
         dimmed = isPast,
         target = ChipTarget.InAppDay(day),
+        pattern = pattern,
         plainText = if (showIcons) text else null,
     )
 }

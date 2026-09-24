@@ -1,6 +1,7 @@
 package app.whatsup.widget
 
 import android.content.Context
+import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,7 @@ import app.whatsup.logic.GridModel
 import app.whatsup.logic.ICON_PREFIX
 import app.whatsup.logic.GridModelBuilder
 import app.whatsup.model.CalendarEntry
+import app.whatsup.model.ChipPattern
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.WeekFields
@@ -175,20 +177,48 @@ private fun ChipView(chip: Chip, cfg: WidgetConfig, m: GridMetrics, palette: Wid
         ChipStyle.FILLED -> if (chip.dimmed) palette.onChipDim else palette.onChip
         ChipStyle.OUTLINED -> if (chip.dimmed) palette.onCellDim else palette.onCell
     }
-    // The Box keeps chip + spacing as one child (Glance allows 10 per Column).
-    Box(GlanceModifier.fillMaxWidth().padding(bottom = 1.dp)) {
-        Text(
-            chip.text,
-            maxLines = chip.maxLines,
-            modifier = GlanceModifier.fillMaxWidth()
-                .then(background)
-                .cornerRadius(3.dp)
-                .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
-                .clickable(actionStartActivity(Intents.forTarget(context, chip.target, cfg.calendarPackage)))
-                .semantics { contentDescription = chip.text.removePrefix(ICON_PREFIX) },
-            style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
+    // Patterns are white tiles, tinted like the text on filled chips and like the
+    // outline on outlined chips (FR-E6).
+    val pattern = patternDrawable(chip.pattern)?.let {
+        GlanceModifier.background(
+            ImageProvider(it),
+            colorFilter = ColorFilter.tint(if (chip.style == ChipStyle.FILLED) textColor else tint),
         )
+    } ?: GlanceModifier
+    // The outer Box keeps chip + spacing as one child (Glance allows 10 per Column).
+    Box(GlanceModifier.fillMaxWidth().padding(bottom = 1.dp)) {
+        Box(GlanceModifier.fillMaxWidth().then(background).cornerRadius(3.dp)) {
+            Text(
+                chip.text,
+                maxLines = chip.maxLines,
+                modifier = GlanceModifier.fillMaxWidth()
+                    .then(pattern)
+                    .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
+                    .clickable(actionStartActivity(Intents.forTarget(context, chip.target, cfg.calendarPackage)))
+                    .semantics { contentDescription = chip.text.removePrefix(ICON_PREFIX) },
+                style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
+            )
+        }
     }
+}
+
+/** The raw tile, for drawing the pattern outside the widget (settings swatches). */
+@DrawableRes
+fun patternTile(pattern: ChipPattern): Int? = when (pattern) {
+    ChipPattern.NONE -> null
+    ChipPattern.STRIPES -> R.drawable.tile_stripes
+    ChipPattern.DOTS -> R.drawable.tile_dots
+    ChipPattern.GRID -> R.drawable.tile_grid
+    ChipPattern.ZIGZAG -> R.drawable.tile_zigzag
+}
+
+@DrawableRes
+fun patternDrawable(pattern: ChipPattern): Int? = when (pattern) {
+    ChipPattern.NONE -> null
+    ChipPattern.STRIPES -> R.drawable.pattern_stripes
+    ChipPattern.DOTS -> R.drawable.pattern_dots
+    ChipPattern.GRID -> R.drawable.pattern_grid
+    ChipPattern.ZIGZAG -> R.drawable.pattern_zigzag
 }
 
 @Composable

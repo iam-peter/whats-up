@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -38,8 +39,10 @@ import app.whatsup.R
 import app.whatsup.config.AppConfig
 import app.whatsup.config.GlobalConfig
 import app.whatsup.config.configStore
+import app.whatsup.data.BIRTHDAY_COLOR
 import app.whatsup.data.CalendarRepository
 import app.whatsup.data.Permissions
+import app.whatsup.model.ChipPattern
 import app.whatsup.update.UpdateScheduler
 import app.whatsup.update.WidgetUpdater
 import app.whatsup.widget.WhatsUpWidgetReceiver
@@ -120,6 +123,21 @@ private fun MainScreen() {
         if (calendars.isNotEmpty()) {
             SectionTitle(stringResource(R.string.default_calendars))
             CalendarPicker(calendars, config.global.calendarIds) { ids -> update { it.copy(calendarIds = ids) } }
+        }
+
+        SectionTitle(stringResource(R.string.patterns))
+        if (config.global.birthdaysFromContacts) {
+            PatternRow(stringResource(R.string.contact_birthdays), null, Color(BIRTHDAY_COLOR),
+                config.global.contactBirthdayPattern) { p -> update { it.copy(contactBirthdayPattern = p) } }
+        }
+        calendars.forEach { cal ->
+            PatternRow(cal.name, cal.account, Color(if (cal.isBirthdays) BIRTHDAY_COLOR else cal.color),
+                config.global.calendarPatterns[cal.id] ?: ChipPattern.NONE) { p ->
+                update {
+                    val patterns = if (p == ChipPattern.NONE) it.calendarPatterns - cal.id else it.calendarPatterns + (cal.id to p)
+                    it.copy(calendarPatterns = patterns)
+                }
+            }
         }
     }
 }

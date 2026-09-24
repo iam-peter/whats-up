@@ -5,6 +5,7 @@ import app.whatsup.config.AppConfig
 import app.whatsup.logic.BirthdayMerger
 import app.whatsup.logic.BirthdayRules
 import app.whatsup.logic.HolidayDeduplicator
+import app.whatsup.logic.PatternAssigner
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.EntryKind
 import java.time.LocalDate
@@ -36,6 +37,6 @@ class EntryLoader(context: Context) {
         } else emptyList()
         val fromCalendar = if (global.birthdaysFromCalendar) calendarBirthdays.map { it.copy(color = BIRTHDAY_COLOR) } else emptyList()
         val birthdays = BirthdayMerger.merge(contactBirthdays, fromCalendar)
-        return HolidayDeduplicator.apply(events, global.preferredHolidayCalendarId) + birthdays
+        return PatternAssigner.assign(HolidayDeduplicator.apply(events, global.preferredHolidayCalendarId) + birthdays, global)
     }
 }

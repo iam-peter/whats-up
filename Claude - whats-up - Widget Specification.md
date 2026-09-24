@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.0 (baseline — all decisions resolved)
+Version: v1.1
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -249,6 +249,8 @@ combinations the presets offer.
   age. The names are visible in the in-app day view and in TalkBack (D-3).
 - **FR-B5** `READ_CONTACTS` is requested only when the contacts source is
   enabled. Without it, only the birthday calendar is used.
+- **FR-B6** A birthday chip keeps its gift icon only if at least four
+  characters of the name stay visible; otherwise it shows the name alone.
 
 ### 5.3 Event rendering (E)
 
@@ -267,6 +269,15 @@ combinations the presets offer.
   calendar colour (Q-33).
 - **FR-E5** Past days are **dimmed** (Q-19a). Today's events that have
   already ended are **dimmed** (Q-19b).
+- **FR-E6** Users can assign a **background pattern** to each calendar:
+  none, stripes, dots, grid, or zigzag. Contact birthdays have no calendar,
+  so "Birthdays from contacts" has its own pattern setting.
+  - Patterns are tiled white tiles drawn over the chip. On filled chips
+    they are tinted like the text; on outlined chips, in the event colour.
+    They work with any colour in light and dark mode.
+  - The setting is global (main screen), like the default calendars.
+  - An aggregated birthday chip uses the pattern of its first birthday.
+  - The gift icon keeps its own rule (FR-B6): a pattern does not remove it.
 
 ### 5.4 Theming (T)
 
@@ -444,5 +455,6 @@ figures must be validated against primary sources before external use.
 | v0.1 | 24 September 2026 | Henning Gründl | Initial draft — generated with Claude AI |
 | v0.2 | 24 September 2026 | Henning Gründl | Questionnaire answers included; M1 scoped to the Chronos month widget; 170 × 40 dp minimum size; clarifications C-1…C-6 added — generated with Claude AI |
 | v1.0 | 24 September 2026 | Henning Gründl | Clarifications resolved as proposed (D-1…D-6); technical approach aligned with the project skeleton (SizeMode.Exact, WorkManager content triggers, JSON DataStore, 8-chip cell limit) — generated with Claude AI |
+| v1.1 | 24 September 2026 | Henning Gründl | Word-boundary wrapping (FR-L5), birthday icon rule (FR-B6), per-calendar background patterns (FR-E6) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

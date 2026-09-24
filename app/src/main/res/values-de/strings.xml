@@ -37,4 +37,11 @@
     <string name="calendars">Kalender</string>
     <string name="use_default_calendars">Standardkalender verwenden</string>
     <string name="save">Speichern</string>
+    <string name="patterns">Muster</string>
+    <string name="contact_birthdays">Geburtstage aus Kontakten</string>
+    <string name="pattern_none">Kein Muster</string>
+    <string name="pattern_stripes">Streifen</string>
+    <string name="pattern_dots">Punkte</string>
+    <string name="pattern_grid">Gitter</string>
+    <string name="pattern_zigzag">Zickzack</string>
 </resources>
