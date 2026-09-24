@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,11 +30,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import app.whatsup.R
 import app.whatsup.config.configStore
 import app.whatsup.data.EntryLoader
 import app.whatsup.logic.ChipTarget
-import app.whatsup.logic.GIFT
 import app.whatsup.logic.entryOrder
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.EntryKind
@@ -75,8 +77,7 @@ private fun DayScreen(date: LocalDate) {
         LazyColumn(Modifier.padding(top = 12.dp)) {
             items(entries) { e ->
                 val subtitle = when (e.kind) {
-                    EntryKind.BIRTHDAY -> GIFT
-                    EntryKind.ALL_DAY -> ""
+                    EntryKind.BIRTHDAY, EntryKind.ALL_DAY -> ""
                     // Agenda-style views show start–end (Q-25).
                     EntryKind.TIMED -> listOfNotNull(e.start, e.end).joinToString("–") { labels.time(it) }
                 }
@@ -88,7 +89,13 @@ private fun DayScreen(date: LocalDate) {
                 ) {
                     Box(Modifier.size(width = 4.dp, height = 32.dp).background(Color(e.color), RoundedCornerShape(2.dp)))
                     Column(Modifier.padding(start = 12.dp)) {
-                        Text(if (e.kind == EntryKind.BIRTHDAY) labels.birthdayText(e.title, e.age) else e.title)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (e.kind == EntryKind.BIRTHDAY) {
+                                Icon(painterResource(R.drawable.ic_cake), contentDescription = null,
+                                    modifier = Modifier.padding(end = 6.dp).size(16.dp), tint = Color(e.color))
+                            }
+                            Text(if (e.kind == EntryKind.BIRTHDAY) labels.birthdayText(e.title, e.age) else e.title)
+                        }
                         if (subtitle.isNotEmpty()) {
                             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }

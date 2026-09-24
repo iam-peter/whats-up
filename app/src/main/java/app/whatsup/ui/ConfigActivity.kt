@@ -126,6 +126,7 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
                 cfg = cfg.copy(weekendStyle = if (it) WeekendStyle.TINTED else WeekendStyle.NONE)
             }
             SwitchRow(stringResource(R.string.week_numbers), cfg.showWeekNumbers) { cfg = cfg.copy(showWeekNumbers = it) }
+            SwitchRow(stringResource(R.string.birthday_icon), cfg.showBirthdayIcon) { cfg = cfg.copy(showBirthdayIcon = it) }
 
             if (calendars.isNotEmpty()) {
                 SectionTitle(stringResource(R.string.calendars))

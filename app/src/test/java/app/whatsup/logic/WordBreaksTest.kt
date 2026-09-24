@@ -18,4 +18,7 @@ class WordBreaksTest {
         assertEquals(2, lines("Malkurs Jugendzentrum", 8, 15, 21))
 
     @Test fun `no lines reported counts as one`() = assertEquals(1, lines("", ))
+
+    @Test fun `unbreakable removes spaces and hyphens as break points`() =
+        assertEquals("Eltern\u2011Kind\u00A0Café", Clipping.unbreakable("Eltern-Kind Café"))
 }

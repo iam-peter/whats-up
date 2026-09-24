@@ -50,4 +50,5 @@
     <string name="line_solid">Solid</string>
     <string name="line_dashed">Dashed</string>
     <string name="line_dotted">Dotted</string>
+    <string name="birthday_icon">Birthday icon</string>
 </resources>

@@ -4,8 +4,16 @@ package app.whatsup.logic
 interface TextMeasurer {
     fun lineCount(text: String, widthDp: Float, textSp: Float): Int
 
-    /** Returns [text] shortened with "…" so it fits in [maxLines]. */
-    fun ellipsize(text: String, maxLines: Int, widthDp: Float, textSp: Float): String
+    /** Height of [lines] lines of text as the widget's TextView draws them. */
+    fun textHeightDp(lines: Int, textSp: Float): Float
+
+    /**
+     * Prepares [text] to be shown in [maxLines] and clipped, without "…":
+     * the wrapped lines are fixed with explicit line breaks, and the last
+     * line has no break opportunities, so the view cuts it at the chip edge
+     * instead of dropping its last words.
+     */
+    fun clip(text: String, maxLines: Int, widthDp: Float, textSp: Float): String
 }
 
 /** Localised strings the grid needs. */

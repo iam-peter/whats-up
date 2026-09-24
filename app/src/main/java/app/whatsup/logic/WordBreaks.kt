@@ -1,5 +1,13 @@
 package app.whatsup.logic
 
+object Clipping {
+    /**
+     * Removes break opportunities, so a line breaker can only cut the text
+     * at the edge (between characters) rather than before a word.
+     */
+    fun unbreakable(text: String) = text.replace(' ', '\u00A0').replace('-', '\u2011')
+}
+
 object WordBreaks {
     /** Characters after which a line break counts as a word boundary. */
     private const val BREAK_AFTER = "-/–—"
@@ -7,8 +15,8 @@ object WordBreaks {
     /**
      * Number of lines a title may use without being broken inside a word.
      * [lineEnds] are the end offsets of each wrapped line. Wrapping stops
-     * at the first line that ends mid-word; that line is then ellipsised
-     * instead, so "Sportzeug!" becomes "Sport…" rather than "Sportz / eug!".
+     * at the first line that ends mid-word; that line is then clipped
+     * instead, so "Sportzeug!" shows as one clipped line, not "Sportz / eug!".
      */
     fun linesWithoutMidWordBreak(text: String, lineEnds: List<Int>): Int {
         for (i in 0 until lineEnds.size - 1) {

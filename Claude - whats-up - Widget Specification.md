@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.1
+Version: v1.2
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -109,7 +109,7 @@ stored as `TypedValue` complex values. For example, `43521` = 0xAA01 =
 
 | ID | Weakness | M1? | Resolution |
 |---|---|---|---|
-| W1 | Titles hard-clipped mid-word | ✅ | FR-L5: wrap to 2 lines, then "…", then "+N" |
+| W1 | Titles hard-clipped mid-word | ✅ | FR-L5: wrap to 2 lines at word boundaries, then clip, then "+N" |
 | W2 | Unused vertical space while titles are cut | ✅ | FR-L5: the 2-line wrap uses that space |
 | W3 | Timed events show no time | ✅ | FR-E3: start time in an outlined chip |
 | W4 | Right column clipped by the widget edge | ✅ | FR-T5 |
@@ -128,7 +128,8 @@ stored as `TypedValue` complex values. For example, `43521` = 0xAA01 =
 
 ## 3. Goals
 
-- **G1 — Legible.** Text is never clipped mid-glyph.
+- **G1 — Legible.** Titles wrap at word boundaries and use the available
+  space; when it runs out they are clipped at the chip edge (no "…").
 - **G2 — Space-efficient.** Compact density and no header by default.
 - **G3 — Small.** Every layout works down to 170 × 40 dp.
 - **G4 — Birthdays built in.** They have an icon, a name, and an age.
@@ -184,19 +185,22 @@ combinations the presets offer.
 
 - **FR-L4** Before building the Glance tree, the layout engine measures
   the text for the actual cell size in dp, using `StaticLayout`.
-- **FR-L5** Overflow strategy per cell, in this fixed order (Q-22):
+- **FR-L5** Overflow strategy per cell, in this fixed order (Q-22, revised
+  in v1.2):
   1. Wrap a title to **at most 2 lines** if the cell height allows it,
      but only at word boundaries (whitespace, or after "-", "/", "–",
-     "—"). A title whose wrap would break inside a word stays on **one
-     line** with "…" instead, e.g. "Sport…" rather than "Sportz / eug!".
-  2. Ellipsise at the end ("…"). Never clip mid-glyph.
+     "—"). A title whose wrap would break inside a word stays on one line.
+  2. **Clip** the last line at the chip edge. There is no ellipsis: the
+     last line has no break opportunities, so it is cut between characters
+     at the edge instead of losing its last words.
+     Glance's TextViews add "…" whenever a line limit is set, so chip text
+     is limited by an exact height (from the font metrics) instead.
   3. When entries don't fit vertically, replace the rest with
      "**+N**".
 - **FR-L5a** Glance allows at most 10 children per `Row`/`Column`. Each
   cell therefore shows at most **8 chips**, plus its header and "+N".
-- **FR-L6** Narrow-cell fallbacks, applied in this order (Q-23):
-  1. Drop the event dot or icon.
-  2. Reduce the inner padding down to a minimum.
+- **FR-L6** Narrow-cell fallback (Q-23): reduce the inner padding down to
+  a minimum. Icons are not dropped automatically (FR-B6).
 
   The weekday initial is **never** dropped, and titles are never
   abbreviated.
@@ -239,18 +243,20 @@ combinations the presets offer.
   These are **de-duplicated per person**. The match is by contact lookup
   key where it is available, otherwise by normalised display name plus
   date. Anniversaries and other contact dates are ignored (Q-12).
-- **FR-B2** Display (Q-10a): a gift icon, the name, and the age "(40)".
+- **FR-B2** Display (Q-10a): a monochrome cake icon (Material Icons
+  "cake", tinted like the chip text), the name, and the age "(40)".
   The age is shown only if the birth year is known; year-less dates such
   as `--MM-DD` get no age.
 - **FR-B3** 29 February is shown on **28 February** in non-leap years
   (Q-10b).
 - **FR-B4** Several birthdays on one day are **always aggregated** into
-  one chip: "🎁 N birthdays" (Q-11). A single birthday shows the name and
+  one chip: "N birthdays" with the cake icon (Q-11). A single birthday shows the name and
   age. The names are visible in the in-app day view and in TalkBack (D-3).
 - **FR-B5** `READ_CONTACTS` is requested only when the contacts source is
   enabled. Without it, only the birthday calendar is used.
-- **FR-B6** A birthday chip keeps its gift icon only if at least four
-  characters of the name stay visible; otherwise it shows the name alone.
+- **FR-B6** The cake icon is a per-widget setting: always shown or never
+  shown. It sits beside the text and narrows it; it is never dropped to
+  make room.
 
 ### 5.3 Event rendering (E)
 
@@ -283,7 +289,6 @@ combinations the presets offer.
   - An aggregated birthday chip uses the fill of its first birthday.
   - Glance's tint keeps a drawable's own alpha, so dimmed chips (FR-E5) use
     pre-dimmed drawable variants rather than a translucent tint.
-  - The gift icon keeps its own rule (FR-B6): a pattern does not remove it.
 
 ### 5.4 Theming (T)
 
@@ -409,8 +414,8 @@ combinations the presets offer.
 
 ### Acceptance criteria for M1 (on the Pixel 9 Pro, next to Chronos at the same size)
 
-- **No clipping.** No title is clipped mid-glyph, and no content crosses
-  the widget outline.
+- **No overflow.** No content crosses the widget outline; titles wrap at
+  word boundaries before they are clipped.
 - **Times shown.** Timed events show their start time in an outlined chip.
 - **No duplicate holidays.** Holidays such as 3 October appear once.
 - **Consistent cells and dimming.** Every cell in the range has the same
@@ -462,5 +467,6 @@ figures must be validated against primary sources before external use.
 | v0.2 | 24 September 2026 | Henning Gründl | Questionnaire answers included; M1 scoped to the Chronos month widget; 170 × 40 dp minimum size; clarifications C-1…C-6 added — generated with Claude AI |
 | v1.0 | 24 September 2026 | Henning Gründl | Clarifications resolved as proposed (D-1…D-6); technical approach aligned with the project skeleton (SizeMode.Exact, WorkManager content triggers, JSON DataStore, 8-chip cell limit) — generated with Claude AI |
 | v1.1 | 24 September 2026 | Henning Gründl | Word-boundary wrapping (FR-L5), birthday icon rule (FR-B6), per-calendar fill patterns and outline styles (FR-E6) — generated with Claude AI |
+| v1.2 | 24 September 2026 | Henning Gründl | Clip instead of ellipsis (FR-L5); monochrome cake icon with an always/never setting (FR-B2, FR-B6) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

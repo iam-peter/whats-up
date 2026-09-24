@@ -5,8 +5,8 @@ import android.graphics.Typeface
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.text.TextUtils
 import android.util.TypedValue
+import app.whatsup.logic.Clipping
 import app.whatsup.logic.TextMeasurer
 import app.whatsup.logic.WordBreaks
 import kotlin.math.max
@@ -31,7 +31,6 @@ class StaticLayoutMeasurer(context: Context) : TextMeasurer {
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
             .setIncludePad(false)
             .setMaxLines(maxLines)
-            .setEllipsize(TextUtils.TruncateAt.END)
             .build()
 
     override fun lineCount(text: String, widthDp: Float, textSp: Float): Int {
@@ -39,11 +38,21 @@ class StaticLayoutMeasurer(context: Context) : TextMeasurer {
         return WordBreaks.linesWithoutMidWordBreak(text, (0 until l.lineCount).map(l::getLineEnd))
     }
 
-    override fun ellipsize(text: String, maxLines: Int, widthDp: Float, textSp: Float): String {
-        val l = layout(text, widthDp, textSp, maxLines)
-        val last = l.lineCount - 1
-        if (l.getEllipsisCount(last) == 0) return text
-        val cut = l.getLineStart(last) + l.getEllipsisStart(last)
-        return text.substring(0, cut).trimEnd() + "…"
+    /**
+     * TextViews add font padding (top/bottom instead of ascent/descent) to
+     * the first and last line; the lines in between use the normal spacing.
+     */
+    override fun textHeightDp(lines: Int, textSp: Float): Float {
+        val fm = paint(textSp).fontMetrics
+        val px = (fm.bottom - fm.top) + (lines - 1).coerceAtLeast(0) * (fm.descent - fm.ascent)
+        return px / metrics.density
+    }
+
+    override fun clip(text: String, maxLines: Int, widthDp: Float, textSp: Float): String {
+        val l = layout(text, widthDp, textSp)
+        val lines = maxLines.coerceIn(1, l.lineCount.coerceAtLeast(1))
+        val head = (0 until lines - 1).map { text.substring(l.getLineStart(it), l.getLineEnd(it)).trimEnd() }
+        val tail = text.substring(if (lines > 1) l.getLineStart(lines - 1) else 0)
+        return (head + Clipping.unbreakable(tail)).joinToString("\n")
     }
 }

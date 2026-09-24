@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
@@ -25,6 +26,7 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.semantics.contentDescription
 import androidx.glance.semantics.semantics
@@ -42,7 +44,6 @@ import app.whatsup.logic.ChipTarget
 import app.whatsup.logic.DayCell
 import app.whatsup.logic.GridMetrics
 import app.whatsup.logic.GridModel
-import app.whatsup.logic.ICON_PREFIX
 import app.whatsup.logic.GridModelBuilder
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.ChipPattern
@@ -182,19 +183,39 @@ private fun ChipView(chip: Chip, cfg: WidgetConfig, m: GridMetrics, palette: Wid
         onColour -> if (chip.dimmed) palette.onChipDim else palette.onChip
         else -> if (chip.dimmed) palette.onCellDim else palette.onCell
     }
-    // The Box keeps chip + spacing as one child (Glance allows 10 per Column).
-    Box(GlanceModifier.fillMaxWidth().padding(bottom = 1.dp)) {
+    val chipModifier = GlanceModifier.fillMaxWidth()
+        .then(background)
+        .cornerRadius(3.dp)
+        .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
+        .clickable(actionStartActivity(Intents.forTarget(context, chip.target, cfg.calendarPackage)))
+        .semantics { contentDescription = chip.description }
+    // No ellipsis (FR-L5): Glance's TextViews ellipsise whenever maxLines is set,
+    // so the text is limited by an exact height instead and the view clips it.
+    val textHeight = chip.textHeightDp.dp
+    val text = @Composable { modifier: GlanceModifier ->
         Text(
             chip.text,
-            maxLines = chip.maxLines,
-            modifier = GlanceModifier.fillMaxWidth()
-                .then(background)
-                .cornerRadius(3.dp)
-                .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
-                .clickable(actionStartActivity(Intents.forTarget(context, chip.target, cfg.calendarPackage)))
-                .semantics { contentDescription = chip.text.removePrefix(ICON_PREFIX) },
+            modifier = modifier,
             style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
         )
+    }
+    // The outer Box keeps chip + spacing as one child (Glance allows 10 per Column).
+    Box(GlanceModifier.fillMaxWidth().padding(bottom = 1.dp)) {
+        if (chip.icon) {
+            Row(chipModifier, verticalAlignment = if (chip.maxLines > 1) Alignment.Top else Alignment.CenterVertically) {
+                // Monochrome cake, tinted like the text (FR-B2).
+                Image(
+                    ImageProvider(R.drawable.ic_cake),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(m.iconSizeDp.dp),
+                    colorFilter = ColorFilter.tint(textColor),
+                )
+                Spacer(GlanceModifier.width(m.iconGapDp.dp))
+                text(GlanceModifier.defaultWeight().height(textHeight))
+            }
+        } else {
+            text(chipModifier.height(textHeight + (2 * m.chipVPaddingDp).dp))
+        }
     }
 }
 

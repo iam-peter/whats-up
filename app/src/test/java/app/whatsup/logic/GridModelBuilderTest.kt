@@ -21,10 +21,9 @@ class GridModelBuilderTest {
         private fun perLine(widthDp: Float, textSp: Float) = (widthDp / (textSp * 0.6f)).toInt().coerceAtLeast(1)
         override fun lineCount(text: String, widthDp: Float, textSp: Float) =
             ceil(text.length / perLine(widthDp, textSp).toFloat()).toInt().coerceAtLeast(1)
-        override fun ellipsize(text: String, maxLines: Int, widthDp: Float, textSp: Float): String {
-            val max = perLine(widthDp, textSp) * maxLines
-            return if (text.length <= max) text else text.take(max - 1) + "…"
-        }
+        override fun textHeightDp(lines: Int, textSp: Float) = lines * textSp * 1.2f
+        override fun clip(text: String, maxLines: Int, widthDp: Float, textSp: Float) =
+            text.take(perLine(widthDp, textSp) * maxLines)
     }
     private val labels = object : GridLabels {
         override fun weekdayInitial(day: DayOfWeek) = day.name.take(1)
@@ -76,32 +75,36 @@ class GridModelBuilderTest {
         val b = listOf("Anna", "Ben").map { CalendarEntry(EntryKind.BIRTHDAY, it, 0, today) }
         val chips = build(b, w = 800f).weeks[0][3].chips
         assertEquals(1, chips.size)
-        assertTrue(chips[0].text.endsWith("2 birthdays"))
+        assertEquals("2 birthdays", chips[0].text)
         assertEquals(ChipTarget.InAppDay(today), chips[0].target)
     }
 
     private fun birthday(name: String) = CalendarEntry(EntryKind.BIRTHDAY, name, 0, today)
 
-    @Test fun `icon is dropped when it would crowd out the name`() {
-        // 380 dp wide, one line per cell: six characters fit, the icon takes three.
-        val chip = build(listOf(birthday("Alexander")), w = 380f, h = 60f).weeks[0][3].chips.single()
-        assertEquals("Alexa…", chip.text)
+    @Test fun `birthday icon follows the setting`() {
+        val on = build(listOf(birthday("Anna")), w = 800f).weeks[0][3].chips.single()
+        val off = build(listOf(birthday("Anna")), w = 800f, cfg = WidgetConfig(showBirthdayIcon = false)).weeks[0][3].chips.single()
+        assertEquals(true, on.icon)
+        assertEquals(false, off.icon)
+        assertEquals("Anna", on.text)
     }
 
-    @Test fun `icon stays when the name still fits`() {
-        val chip = build(listOf(birthday("Bo")), w = 380f, h = 60f).weeks[0][3].chips.single()
-        assertEquals(ICON_PREFIX + "Bo", chip.text)
+    @Test fun `icon narrows the text instead of disappearing`() {
+        // 380 dp, one line: six characters fit without the icon, fewer beside it.
+        val long = "Alexander"
+        val with = build(listOf(birthday(long)), w = 380f, h = 60f).weeks[0][3].chips.single()
+        val without = build(listOf(birthday(long)), w = 380f, h = 60f, cfg = WidgetConfig(showBirthdayIcon = false))
+            .weeks[0][3].chips.single()
+        assertTrue(with.icon)
+        assertTrue(with.text.length < without.text.length)
+        assertTrue(long.startsWith(with.text))
     }
 
-    @Test fun `patterns reach the chips, aggregated birthdays use the first one`() {
-        val entries = listOf(
-            CalendarEntry(EntryKind.BIRTHDAY, "Anna", 0, today, pattern = ChipPattern.DOTS),
-            CalendarEntry(EntryKind.BIRTHDAY, "Ben", 0, today, pattern = ChipPattern.GRID),
-            timed("Standup", 9).copy(pattern = ChipPattern.STRIPES, lineStyle = LineStyle.DOTTED),
-        )
-        val chips = build(entries, w = 800f).weeks[0][3].chips
-        assertEquals(listOf(ChipPattern.DOTS, ChipPattern.STRIPES), chips.map { it.pattern })
-        assertEquals(LineStyle.DOTTED, chips[1].lineStyle)
+    @Test fun `text is clipped, never ellipsised`() {
+        val chip = build(listOf(timed("A rather long meeting title", 15)), w = 380f, h = 60f).weeks[0][3].chips.single()
+        assertTrue("15:00 A rather long meeting title".startsWith(chip.text))
+        assertTrue(!chip.text.contains("…"))
+        assertEquals("15:00 A rather long meeting title", chip.description)
     }
 
     @Test fun `overflow yields plus N and nothing is longer than allowed`() {

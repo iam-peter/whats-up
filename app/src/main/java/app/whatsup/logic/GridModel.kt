@@ -16,7 +16,10 @@ sealed interface ChipTarget {
 }
 
 data class Chip(
+    /** Laid out for display: may contain line breaks and no-break spaces. */
     val text: String,
+    /** The plain text, for accessibility. */
+    val description: String,
     val maxLines: Int,
     val color: Int,
     val style: ChipStyle,
@@ -24,8 +27,13 @@ data class Chip(
     val target: ChipTarget,
     val pattern: ChipPattern = ChipPattern.NONE,
     val lineStyle: LineStyle = LineStyle.SOLID,
-    /** The text without its icon, used when the icon would crowd out the name. */
-    val plainText: String? = null,
+    /**
+     * Exact height of the text: the view is limited by height, not by a
+     * line count, because a line limit makes Android add "…".
+     */
+    val textHeightDp: Float = 0f,
+    /** Show the cake icon beside the text (birthdays, if enabled). */
+    val icon: Boolean = false,
 )
 
 data class DayCell(
@@ -42,6 +50,7 @@ data class DayCell(
 
 data class GridMetrics(
     val textSp: Float,
+    /** One fitter line: a single-line chip including padding and spacing. */
     val lineHeightDp: Float,
     val headerHeightDp: Float,
     val cellPaddingDp: Float,
@@ -50,7 +59,8 @@ data class GridMetrics(
     val gapDp: Float,
     val outerPaddingDp: Float,
     val weekNumberWidthDp: Float,
-    val showIcons: Boolean,
+    val iconSizeDp: Float,
+    val iconGapDp: Float,
 )
 
 data class GridModel(

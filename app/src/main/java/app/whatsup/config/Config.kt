@@ -36,6 +36,8 @@ data class WidgetConfig(
     val backgroundOpacity: Float = 1f,
     val weekendStyle: WeekendStyle = WeekendStyle.NONE,
     val showWeekNumbers: Boolean = false,
+    /** Cake icon on birthday chips: always or never (FR-B6). */
+    val showBirthdayIcon: Boolean = true,
     val dynamicColors: Boolean = true,
     /** null = system default handler for calendar intents. */
     val calendarPackage: String? = null,
