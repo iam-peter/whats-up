@@ -5,14 +5,22 @@ import android.content.Context
 import android.util.SizeF
 import android.widget.FrameLayout
 import android.widget.RemoteViews
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -33,7 +41,11 @@ fun widgetSize(context: Context, appWidgetId: Int): DpSize {
     return if (w > 0 && h > 0) DpSize(w.dp, h.dp) else DpSize(330.dp, 180.dp)
 }
 
-/** Live preview (FR-C1): the real Glance content rendered to RemoteViews. */
+/**
+ * Live preview (FR-C1): the real Glance content rendered to RemoteViews.
+ * The views are laid out at the widget's real size and scaled down to fit,
+ * so the preview shows the same fitting decisions as the home screen.
+ */
 @OptIn(ExperimentalGlanceRemoteViewsApi::class)
 @Composable
 fun WidgetPreview(state: WidgetState, size: DpSize, modifier: Modifier = Modifier) {
@@ -42,14 +54,26 @@ fun WidgetPreview(state: WidgetState, size: DpSize, modifier: Modifier = Modifie
     LaunchedEffect(state, size) {
         views = GlanceRemoteViews().compose(context, size) { WidgetContent(state) }.remoteViews
     }
-    AndroidView(
-        factory = { FrameLayout(it) },
-        update = { frame ->
-            views?.let {
-                frame.removeAllViews()
-                frame.addView(it.apply(context, frame))
-            }
-        },
-        modifier = modifier.size(size),
-    )
+    BoxWithConstraints(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        val scale = minOf(1f, maxWidth / size.width)
+        Box(Modifier.size(size.width * scale, size.height * scale)) {
+            AndroidView(
+                factory = { FrameLayout(it) },
+                update = { frame ->
+                    views?.let {
+                        frame.removeAllViews()
+                        frame.addView(it.apply(context, frame))
+                    }
+                },
+                modifier = Modifier
+                    .wrapContentSize(Alignment.TopStart, unbounded = true)
+                    .requiredSize(size)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        transformOrigin = TransformOrigin(0f, 0f)
+                    },
+            )
+        }
+    }
 }
