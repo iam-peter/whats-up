@@ -5,8 +5,14 @@ import java.time.LocalDate
 
 enum class EntryKind { BIRTHDAY, ALL_DAY, TIMED }
 
-/** Background pattern drawn over a chip, assigned per calendar by the user. */
+/**
+ * Fill of filled chips, assigned per calendar. NONE is solid colour; the
+ * others alternate between the colour and transparent.
+ */
 enum class ChipPattern { NONE, STRIPES, DOTS, GRID, ZIGZAG }
+
+/** Outline of outlined (timed) chips, assigned per calendar. */
+enum class LineStyle { SOLID, DASHED, DOTTED }
 
 /**
  * One thing to show on one or more days. Birthdays, all-day and timed
@@ -29,6 +35,7 @@ data class CalendarEntry(
     /** Only for birthdays with a known birth year. */
     val age: Int? = null,
     val pattern: ChipPattern = ChipPattern.NONE,
+    val lineStyle: LineStyle = LineStyle.SOLID,
 ) {
     fun occursOn(day: LocalDate) = !day.isBefore(firstDay) && !day.isAfter(lastDay)
     val isMultiDay get() = lastDay.isAfter(firstDay)

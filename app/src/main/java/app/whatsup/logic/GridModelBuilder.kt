@@ -166,6 +166,7 @@ class GridModelBuilder(
                 style = if (timed) ChipStyle.OUTLINED else ChipStyle.FILLED,
                 dimmed = isPast || ended,
                 pattern = e.pattern,
+                lineStyle = e.lineStyle,
                 target = e.eventId?.let { ChipTarget.Event(it, e.start, e.end) } ?: ChipTarget.CalendarDay(day),
             )
         }

@@ -4,6 +4,7 @@ import app.whatsup.config.WidgetConfig
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.ChipPattern
 import app.whatsup.model.EntryKind
+import app.whatsup.model.LineStyle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -96,10 +97,11 @@ class GridModelBuilderTest {
         val entries = listOf(
             CalendarEntry(EntryKind.BIRTHDAY, "Anna", 0, today, pattern = ChipPattern.DOTS),
             CalendarEntry(EntryKind.BIRTHDAY, "Ben", 0, today, pattern = ChipPattern.GRID),
-            timed("Standup", 9).copy(pattern = ChipPattern.STRIPES),
+            timed("Standup", 9).copy(pattern = ChipPattern.STRIPES, lineStyle = LineStyle.DOTTED),
         )
         val chips = build(entries, w = 800f).weeks[0][3].chips
         assertEquals(listOf(ChipPattern.DOTS, ChipPattern.STRIPES), chips.map { it.pattern })
+        assertEquals(LineStyle.DOTTED, chips[1].lineStyle)
     }
 
     @Test fun `overflow yields plus N and nothing is longer than allowed`() {

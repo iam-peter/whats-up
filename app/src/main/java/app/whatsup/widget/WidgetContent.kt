@@ -46,6 +46,7 @@ import app.whatsup.logic.ICON_PREFIX
 import app.whatsup.logic.GridModelBuilder
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.ChipPattern
+import app.whatsup.model.LineStyle
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.WeekFields
@@ -167,39 +168,41 @@ private fun DayCellView(cell: DayCell, cfg: WidgetConfig, m: GridMetrics, palett
 @Composable
 private fun ChipView(chip: Chip, cfg: WidgetConfig, m: GridMetrics, palette: WidgetPalette) {
     val context = LocalContext.current
-    val tint = palette.chip(chip.color, chip.dimmed)
-    val background = when (chip.style) {
-        ChipStyle.FILLED -> GlanceModifier.background(tint)
-        // Spike S1: Glance has no border modifier, so the outline is a tinted drawable.
-        ChipStyle.OUTLINED -> GlanceModifier.background(ImageProvider(R.drawable.chip_outline), colorFilter = ColorFilter.tint(tint))
+    // Glance has no border or pattern modifiers, so both are tinted drawables (FR-E6).
+    val fillPattern = patternDrawable(chip.pattern, chip.dimmed)
+    val drawable = if (chip.style == ChipStyle.OUTLINED) outlineDrawable(chip.lineStyle, chip.dimmed) else fillPattern
+    val background = if (drawable != null) {
+        GlanceModifier.background(ImageProvider(drawable), colorFilter = ColorFilter.tint(palette.drawableTint(chip.color)))
+    } else {
+        GlanceModifier.background(palette.chip(chip.color, chip.dimmed))
     }
-    val textColor = when (chip.style) {
-        ChipStyle.FILLED -> if (chip.dimmed) palette.onChipDim else palette.onChip
-        ChipStyle.OUTLINED -> if (chip.dimmed) palette.onCellDim else palette.onCell
+    // Text on a solid chip sits on the colour; otherwise it also sits on the cell.
+    val onColour = chip.style == ChipStyle.FILLED && fillPattern == null
+    val textColor = when {
+        onColour -> if (chip.dimmed) palette.onChipDim else palette.onChip
+        else -> if (chip.dimmed) palette.onCellDim else palette.onCell
     }
-    // Patterns are white tiles, tinted like the text on filled chips and like the
-    // outline on outlined chips (FR-E6).
-    val pattern = patternDrawable(chip.pattern)?.let {
-        GlanceModifier.background(
-            ImageProvider(it),
-            colorFilter = ColorFilter.tint(if (chip.style == ChipStyle.FILLED) textColor else tint),
-        )
-    } ?: GlanceModifier
-    // The outer Box keeps chip + spacing as one child (Glance allows 10 per Column).
+    // The Box keeps chip + spacing as one child (Glance allows 10 per Column).
     Box(GlanceModifier.fillMaxWidth().padding(bottom = 1.dp)) {
-        Box(GlanceModifier.fillMaxWidth().then(background).cornerRadius(3.dp)) {
-            Text(
-                chip.text,
-                maxLines = chip.maxLines,
-                modifier = GlanceModifier.fillMaxWidth()
-                    .then(pattern)
-                    .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
-                    .clickable(actionStartActivity(Intents.forTarget(context, chip.target, cfg.calendarPackage)))
-                    .semantics { contentDescription = chip.text.removePrefix(ICON_PREFIX) },
-                style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
-            )
-        }
+        Text(
+            chip.text,
+            maxLines = chip.maxLines,
+            modifier = GlanceModifier.fillMaxWidth()
+                .then(background)
+                .cornerRadius(3.dp)
+                .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
+                .clickable(actionStartActivity(Intents.forTarget(context, chip.target, cfg.calendarPackage)))
+                .semantics { contentDescription = chip.text.removePrefix(ICON_PREFIX) },
+            style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
+        )
     }
+}
+
+@DrawableRes
+fun outlineDrawable(style: LineStyle, dimmed: Boolean): Int = when (style) {
+    LineStyle.SOLID -> if (dimmed) R.drawable.chip_outline_dim else R.drawable.chip_outline
+    LineStyle.DASHED -> if (dimmed) R.drawable.chip_outline_dashed_dim else R.drawable.chip_outline_dashed
+    LineStyle.DOTTED -> if (dimmed) R.drawable.chip_outline_dotted_dim else R.drawable.chip_outline_dotted
 }
 
 /** The raw tile, for drawing the pattern outside the widget (settings swatches). */
@@ -213,12 +216,12 @@ fun patternTile(pattern: ChipPattern): Int? = when (pattern) {
 }
 
 @DrawableRes
-fun patternDrawable(pattern: ChipPattern): Int? = when (pattern) {
+fun patternDrawable(pattern: ChipPattern, dimmed: Boolean): Int? = when (pattern) {
     ChipPattern.NONE -> null
-    ChipPattern.STRIPES -> R.drawable.pattern_stripes
-    ChipPattern.DOTS -> R.drawable.pattern_dots
-    ChipPattern.GRID -> R.drawable.pattern_grid
-    ChipPattern.ZIGZAG -> R.drawable.pattern_zigzag
+    ChipPattern.STRIPES -> if (dimmed) R.drawable.pattern_stripes_dim else R.drawable.pattern_stripes
+    ChipPattern.DOTS -> if (dimmed) R.drawable.pattern_dots_dim else R.drawable.pattern_dots
+    ChipPattern.GRID -> if (dimmed) R.drawable.pattern_grid_dim else R.drawable.pattern_grid
+    ChipPattern.ZIGZAG -> if (dimmed) R.drawable.pattern_zigzag_dim else R.drawable.pattern_zigzag
 }
 
 @Composable

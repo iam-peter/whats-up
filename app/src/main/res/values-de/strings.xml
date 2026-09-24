@@ -39,9 +39,14 @@
     <string name="save">Speichern</string>
     <string name="patterns">Muster</string>
     <string name="contact_birthdays">Geburtstage aus Kontakten</string>
-    <string name="pattern_none">Kein Muster</string>
+    <string name="pattern_none">Vollfarbe</string>
     <string name="pattern_stripes">Streifen</string>
     <string name="pattern_dots">Punkte</string>
     <string name="pattern_grid">Gitter</string>
     <string name="pattern_zigzag">Zickzack</string>
+    <string name="fill">Füllung</string>
+    <string name="outline">Umriss</string>
+    <string name="line_solid">Durchgezogen</string>
+    <string name="line_dashed">Gestrichelt</string>
+    <string name="line_dotted">Gepunktet</string>
 </resources>

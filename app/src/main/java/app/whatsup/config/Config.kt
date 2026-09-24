@@ -1,6 +1,7 @@
 package app.whatsup.config
 
 import app.whatsup.model.ChipPattern
+import app.whatsup.model.LineStyle
 import kotlinx.serialization.Serializable
 
 enum class Density { COMPACT, COMFORTABLE }
@@ -15,8 +16,10 @@ data class GlobalConfig(
     val preferredHolidayCalendarId: Long? = null,
     val birthdaysFromContacts: Boolean = true,
     val birthdaysFromCalendar: Boolean = true,
-    /** Per calendar ID; calendars without an entry get no pattern. */
+    /** Fill per calendar ID; calendars without an entry are solid. */
     val calendarPatterns: Map<Long, ChipPattern> = emptyMap(),
+    /** Outline per calendar ID; calendars without an entry are solid. */
+    val calendarLineStyles: Map<Long, LineStyle> = emptyMap(),
     /** Contact birthdays belong to no calendar, so they have their own setting. */
     val contactBirthdayPattern: ChipPattern = ChipPattern.NONE,
 )

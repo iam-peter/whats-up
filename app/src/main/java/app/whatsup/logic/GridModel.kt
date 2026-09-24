@@ -1,6 +1,7 @@
 package app.whatsup.logic
 
 import app.whatsup.model.ChipPattern
+import app.whatsup.model.LineStyle
 import java.time.Instant
 import java.time.LocalDate
 
@@ -22,6 +23,7 @@ data class Chip(
     val dimmed: Boolean,
     val target: ChipTarget,
     val pattern: ChipPattern = ChipPattern.NONE,
+    val lineStyle: LineStyle = LineStyle.SOLID,
     /** The text without its icon, used when the icon would crowd out the name. */
     val plainText: String? = null,
 )

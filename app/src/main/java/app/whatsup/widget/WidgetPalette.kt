@@ -29,8 +29,14 @@ class WidgetPalette(context: Context, cfg: WidgetConfig) {
     val onChip: ColorProvider = DayNight(Color.White, Color.White)
     val onChipDim: ColorProvider = DayNight(Color.White.copy(alpha = 0.6f), Color.White.copy(alpha = 0.6f))
 
-    fun chip(argb: Int, dimmed: Boolean): ColorProvider {
-        val c = Color(argb).let { if (dimmed) it.copy(alpha = 0.45f) else it }
-        return DayNight(c, c)
-    }
+    fun chip(argb: Int, dimmed: Boolean): ColorProvider = fixed(Color(argb), if (dimmed) 0.45f else 1f)
+
+    /**
+     * Tint for drawable backgrounds (outlines, patterns). Glance's tint keeps
+     * the drawable's alpha and ignores the tint's, so dimming comes from the
+     * `_dim` drawable variants instead.
+     */
+    fun drawableTint(argb: Int): ColorProvider = fixed(Color(argb), 1f)
+
+    private fun fixed(c: Color, alpha: Float) = c.copy(alpha = c.alpha * alpha).let { DayNight(it, it) }
 }

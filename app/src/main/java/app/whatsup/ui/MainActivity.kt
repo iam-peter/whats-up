@@ -43,6 +43,7 @@ import app.whatsup.data.BIRTHDAY_COLOR
 import app.whatsup.data.CalendarRepository
 import app.whatsup.data.Permissions
 import app.whatsup.model.ChipPattern
+import app.whatsup.model.LineStyle
 import app.whatsup.update.UpdateScheduler
 import app.whatsup.update.WidgetUpdater
 import app.whatsup.widget.WhatsUpWidgetReceiver
@@ -127,17 +128,27 @@ private fun MainScreen() {
 
         SectionTitle(stringResource(R.string.patterns))
         if (config.global.birthdaysFromContacts) {
-            PatternRow(stringResource(R.string.contact_birthdays), null, Color(BIRTHDAY_COLOR),
-                config.global.contactBirthdayPattern) { p -> update { it.copy(contactBirthdayPattern = p) } }
+            CalendarStyleRow(stringResource(R.string.contact_birthdays), null, Color(BIRTHDAY_COLOR),
+                config.global.contactBirthdayPattern, { p -> update { it.copy(contactBirthdayPattern = p) } },
+                line = null)
         }
         calendars.forEach { cal ->
-            PatternRow(cal.name, cal.account, Color(if (cal.isBirthdays) BIRTHDAY_COLOR else cal.color),
-                config.global.calendarPatterns[cal.id] ?: ChipPattern.NONE) { p ->
-                update {
-                    val patterns = if (p == ChipPattern.NONE) it.calendarPatterns - cal.id else it.calendarPatterns + (cal.id to p)
-                    it.copy(calendarPatterns = patterns)
-                }
-            }
+            CalendarStyleRow(
+                cal.name, cal.account, Color(if (cal.isBirthdays) BIRTHDAY_COLOR else cal.color),
+                fill = config.global.calendarPatterns[cal.id] ?: ChipPattern.NONE,
+                onFill = { p ->
+                    update { it.copy(calendarPatterns = it.calendarPatterns.withDefault(cal.id, p, ChipPattern.NONE)) }
+                },
+                // Birthday calendars only have all-day entries, so no outlined chips.
+                line = if (cal.isBirthdays) null else config.global.calendarLineStyles[cal.id] ?: LineStyle.SOLID,
+                onLine = { l ->
+                    update { it.copy(calendarLineStyles = it.calendarLineStyles.withDefault(cal.id, l, LineStyle.SOLID)) }
+                },
+            )
         }
     }
 }
+
+/** Stores [value] for [key], dropping the entry when it is the [default]. */
+private fun <V> Map<Long, V>.withDefault(key: Long, value: V, default: V) =
+    if (value == default) this - key else this + (key to value)

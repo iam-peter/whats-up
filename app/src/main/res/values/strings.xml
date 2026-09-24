@@ -40,9 +40,14 @@
     <string name="save">Save</string>
     <string name="patterns">Patterns</string>
     <string name="contact_birthdays">Birthdays from contacts</string>
-    <string name="pattern_none">No pattern</string>
+    <string name="pattern_none">Solid</string>
     <string name="pattern_stripes">Stripes</string>
     <string name="pattern_dots">Dots</string>
     <string name="pattern_grid">Grid</string>
     <string name="pattern_zigzag">Zigzag</string>
+    <string name="fill">Fill</string>
+    <string name="outline">Outline</string>
+    <string name="line_solid">Solid</string>
+    <string name="line_dashed">Dashed</string>
+    <string name="line_dotted">Dotted</string>
 </resources>

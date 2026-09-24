@@ -269,14 +269,20 @@ combinations the presets offer.
   calendar colour (Q-33).
 - **FR-E5** Past days are **dimmed** (Q-19a). Today's events that have
   already ended are **dimmed** (Q-19b).
-- **FR-E6** Users can assign a **background pattern** to each calendar:
-  none, stripes, dots, grid, or zigzag. Contact birthdays have no calendar,
-  so "Birthdays from contacts" has its own pattern setting.
-  - Patterns are tiled white tiles drawn over the chip. On filled chips
-    they are tinted like the text; on outlined chips, in the event colour.
-    They work with any colour in light and dark mode.
-  - The setting is global (main screen), like the default calendars.
-  - An aggregated birthday chip uses the pattern of its first birthday.
+- **FR-E6** Users can style each calendar's chips with two settings,
+  each chosen from a dropdown:
+  - **Fill**, for filled chips (all-day events, birthdays): solid, stripes,
+    dots, grid or zigzag. Patterns alternate between the calendar colour and
+    transparent (about half each), so the cell shows through. Text on a
+    patterned chip uses the cell's text colour.
+  - **Outline**, for outlined chips (timed events): solid, dashed or dotted.
+    Birthday calendars have no timed events, so they only offer a fill.
+  - Contact birthdays belong to no calendar, so "Birthdays from contacts"
+    has its own fill setting.
+  - Both settings are global (main screen), like the default calendars.
+  - An aggregated birthday chip uses the fill of its first birthday.
+  - Glance's tint keeps a drawable's own alpha, so dimmed chips (FR-E5) use
+    pre-dimmed drawable variants rather than a translucent tint.
   - The gift icon keeps its own rule (FR-B6): a pattern does not remove it.
 
 ### 5.4 Theming (T)
@@ -455,6 +461,6 @@ figures must be validated against primary sources before external use.
 | v0.1 | 24 September 2026 | Henning Gründl | Initial draft — generated with Claude AI |
 | v0.2 | 24 September 2026 | Henning Gründl | Questionnaire answers included; M1 scoped to the Chronos month widget; 170 × 40 dp minimum size; clarifications C-1…C-6 added — generated with Claude AI |
 | v1.0 | 24 September 2026 | Henning Gründl | Clarifications resolved as proposed (D-1…D-6); technical approach aligned with the project skeleton (SizeMode.Exact, WorkManager content triggers, JSON DataStore, 8-chip cell limit) — generated with Claude AI |
-| v1.1 | 24 September 2026 | Henning Gründl | Word-boundary wrapping (FR-L5), birthday icon rule (FR-B6), per-calendar background patterns (FR-E6) — generated with Claude AI |
+| v1.1 | 24 September 2026 | Henning Gründl | Word-boundary wrapping (FR-L5), birthday icon rule (FR-B6), per-calendar fill patterns and outline styles (FR-E6) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>
