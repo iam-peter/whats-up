@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">whats-up</string>
+    <string name="widget_name">whats-up calendar</string>
+    <string name="widget_description">Upcoming events and birthdays</string>
+    <string name="grant_access">Grant calendar access</string>
+    <string name="today">today</string>
+    <string name="more_count">+%1$d</string>
+    <plurals name="birthdays_count">
+        <item quantity="one">%1$d birthday</item>
+        <item quantity="other">%1$d birthdays</item>
+    </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">%1$d entry</item>
+        <item quantity="other">%1$d entries</item>
+    </plurals>
+    <string name="permissions">Permissions</string>
+    <string name="permissions_ok">Calendar access granted.</string>
+    <string name="add_widget">Add widget to home screen</string>
+    <string name="birthdays">Birthdays</string>
+    <string name="birthdays_from_contacts">From contacts</string>
+    <string name="birthdays_from_calendar">From the Birthdays calendar</string>
+    <string name="preferred_holiday_calendar">Preferred holiday calendar</string>
+    <string name="default_calendars">Default calendars</string>
+    <string name="weeks">Weeks</string>
+    <string name="auto">Auto</string>
+    <string name="text_size">Text size</string>
+    <string name="density">Density</string>
+    <string name="compact">Compact</string>
+    <string name="comfortable">Comfortable</string>
+    <string name="background">Background</string>
+    <string name="per_cell">Per cell</string>
+    <string name="single">Single</string>
+    <string name="appearance">Appearance</string>
+    <string name="dynamic_colors">Dynamic colours</string>
+    <string name="tint_weekends">Tint weekends</string>
+    <string name="week_numbers">Week numbers</string>
+    <string name="calendars">Calendars</string>
+    <string name="use_default_calendars">Use default calendars</string>
+    <string name="save">Save</string>
+</resources>

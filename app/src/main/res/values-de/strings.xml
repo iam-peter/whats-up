@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name">whats-up Kalender</string>
+    <string name="widget_description">Anstehende Termine und Geburtstage</string>
+    <string name="grant_access">Kalenderzugriff erlauben</string>
+    <string name="today">heute</string>
+    <string name="more_count">+%1$d</string>
+    <plurals name="birthdays_count">
+        <item quantity="one">%1$d Geburtstag</item>
+        <item quantity="other">%1$d Geburtstage</item>
+    </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">%1$d Eintrag</item>
+        <item quantity="other">%1$d Einträge</item>
+    </plurals>
+    <string name="permissions">Berechtigungen</string>
+    <string name="permissions_ok">Kalenderzugriff erteilt.</string>
+    <string name="add_widget">Widget zum Startbildschirm hinzufügen</string>
+    <string name="birthdays">Geburtstage</string>
+    <string name="birthdays_from_contacts">Aus Kontakten</string>
+    <string name="birthdays_from_calendar">Aus dem Geburtstagskalender</string>
+    <string name="preferred_holiday_calendar">Bevorzugter Feiertagskalender</string>
+    <string name="default_calendars">Standardkalender</string>
+    <string name="weeks">Wochen</string>
+    <string name="auto">Auto</string>
+    <string name="text_size">Textgröße</string>
+    <string name="density">Dichte</string>
+    <string name="compact">Kompakt</string>
+    <string name="comfortable">Großzügig</string>
+    <string name="background">Hintergrund</string>
+    <string name="per_cell">Je Zelle</string>
+    <string name="single">Einheitlich</string>
+    <string name="appearance">Darstellung</string>
+    <string name="dynamic_colors">Dynamische Farben</string>
+    <string name="tint_weekends">Wochenenden einfärben</string>
+    <string name="week_numbers">Kalenderwochen</string>
+    <string name="calendars">Kalender</string>
+    <string name="use_default_calendars">Standardkalender verwenden</string>
+    <string name="save">Speichern</string>
+</resources>

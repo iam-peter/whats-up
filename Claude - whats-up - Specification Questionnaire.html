@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude - whats-up - Specification Questionnaire</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --fg: #1d2330; --muted: #5b6475; --line: #dde1e8;
+    --accent: #2f6fdb; --accent-soft: #e6eefc; --warn: #8a5a00; --warn-bg: #fff6e0; --ok: #1f8a4c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --card: #1b2029; --fg: #e6e9ef; --muted: #9aa3b5; --line: #2c3340;
+      --accent: #7aa7ff; --accent-soft: #1f2b44; --warn: #ffcf70; --warn-bg: #2f2716; --ok: #5fd08f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--fg); }
+  header.top { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--line); padding: 10px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  header.top h1 { font-size: 17px; margin: 0; flex: 1 1 auto; }
+  .progress { flex: 0 0 220px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .progress > div { height: 100%; width: 0; background: var(--ok); transition: width .2s; }
+  #progressText { color: var(--muted); font-size: 13px; min-width: 90px; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--fg); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:hover { filter: brightness(1.05); }
+  main { max-width: 920px; margin: 0 auto; padding: 20px; }
+  .notice { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 13px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  nav.toc a { text-decoration: none; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 14px; font-size: 13px; }
+  section h2 { margin: 32px 0 8px; font-size: 20px; }
+  section > p.lead { color: var(--muted); margin-top: 0; }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+  .q.answered { border-left: 4px solid var(--ok); }
+  .q h3 { margin: 0 0 4px; font-size: 15px; }
+  .q h3 .id { color: var(--accent); font-family: ui-monospace, monospace; margin-right: 6px; }
+  .q .kind { font-size: 12px; color: var(--muted); font-weight: normal; margin-left: 6px; }
+  .q .hint { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+  .opts label { display: flex; gap: 8px; align-items: flex-start; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+  .opts label:hover { background: var(--accent-soft); }
+  .opts input { margin-top: 4px; }
+  .opts .rec { font-size: 11px; color: var(--ok); border: 1px solid var(--ok); border-radius: 10px; padding: 0 6px; margin-left: 6px; white-space: nowrap; }
+  .opts .desc { color: var(--muted); font-size: 13px; display: block; }
+  .opts label.nopref { font-style: italic; color: var(--muted); }
+  textarea { width: 100%; min-height: 36px; margin-top: 6px; font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); resize: vertical; }
+  dialog { max-width: 760px; width: 92vw; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--fg); }
+  dialog pre { max-height: 60vh; overflow: auto; background: var(--bg); padding: 10px; border-radius: 6px; font-size: 12px; white-space: pre-wrap; }
+  footer { color: var(--muted); font-size: 12px; margin: 40px 0 20px; }
+  @media print { header.top, nav.toc, button { display: none; } .q { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>whats-up — Specification Questionnaire</h1>
+  <div class="progress"><div id="bar"></div></div>
+  <span id="progressText"></span>
+  <button class="primary" id="btnMd">Export Markdown</button>
+  <button id="btnJson">Export JSON</button>
+  <button id="btnImport">Import JSON</button>
+  <button id="btnReset">Reset</button>
+  <input type="file" id="fileImport" accept="application/json" hidden>
+</header>
+
+<main>
+  <p class="notice"><strong>Private project document.</strong> Generated with Claude AI on 24 September 2026 (v0.1, Henning Gründl). Validate all content before use.</p>
+
+  <p>This questionnaire fills the open points <strong>[Q-xx]</strong> in <em>Claude - whats-up - Widget Specification.md</em>. Answers are saved automatically in this browser. Every question also has a free-text field for “Other” or remarks. When you are done, use <strong>Export Markdown</strong> (or JSON) and hand the result back so the spec can be updated to v0.2.</p>
+  <p>Options marked <span style="color:var(--ok)">recommended</span> are the spec author’s suggested default. <em>“No preference — decide for me”</em> accepts that default.</p>
+
+  <nav class="toc" id="toc"></nav>
+  <div id="form"></div>
+
+  <footer>
+    Generated with Claude AI — validate before use.<br>
+    Reference: Chronos Calendar+ Widget 4.7.260901 as observed on a Pixel 9 Pro (Android 16), 24 September 2026. Weakness IDs W1–W11 refer to section 2.3 of the specification.
+  </footer>
+</main>
+
+<dialog id="dlg">
+  <h3 id="dlgTitle">Export</h3>
+  <pre id="dlgBody"></pre>
+  <p style="display:flex;gap:8px;justify-content:flex-end">
+    <button id="dlgCopy">Copy to clipboard</button>
+    <button id="dlgSave" class="primary">Download file</button>
+    <button id="dlgClose">Close</button>
+  </p>
+</dialog>
+
+<script>
+"use strict";
+// Question catalogue. type: "one" = single choice, "many" = multiple choice.
+// Options: [label, description?, recommended?]
+const SECTIONS = [
+{ id: "A", title: "A. Product & scope", lead: "What are we building, for whom, and on what?", qs: [
+  { id: "Q-01", type: "many", q: "Which Chronos limitations bother you most?",
+    hint: "Observed on your current Chronos month widget. Select every one that matters; these become the acceptance criteria for the MVP.",
+    o: [["W1 Titles are hard-clipped mid-word, no ellipsis"],
+        ["W2 Half of each cell is empty while titles are cut"],
+        ["W3 Timed events don’t show their time"],
+        ["W4 Right-most column is clipped at the widget edge"],
+        ["W5 Inconsistent cell backgrounds (e.g. Oct 1–4 without background)"],
+        ["W6 “2 birthdays” hides who has a birthday"],
+        ["W7 Duplicate holidays (English + German holiday calendar)"],
+        ["W8 Past days look the same as future days"],
+        ["W9 Weekends are not distinguishable"],
+        ["W10 Widget can’t be reconfigured from the home screen"],
+        ["W11 Only fixed layout presets, little room to combine"],
+        ["Other (describe below)"]] },
+  { id: "Q-02", type: "one", q: "How will the app be distributed?",
+    o: [["Personal use only (sideload / adb install)", "No store requirements, fastest iteration", true],
+        ["Open source, e.g. GitHub releases / F-Droid"],
+        ["Google Play, free"],
+        ["Google Play, paid or with in-app purchase"]] },
+  { id: "Q-03", type: "one", q: "What does the app contain besides the widget?",
+    o: [["Widget + configuration screen only", "The calendar app of choice handles everything else", true],
+        ["+ an in-app day / agenda view opened from the widget"],
+        ["+ creating and editing events"],
+        ["A full calendar app (month/week/day screens)"]] },
+  { id: "Q-04", type: "many", q: "Which form factors / surfaces must be supported?",
+    o: [["Phone home screen", "", true], ["Tablet home screen"], ["Foldables (inner + outer display)"],
+        ["Lock screen / hub widgets (where the launcher supports them)"]] },
+  { id: "Q-05", type: "one", q: "Minimum Android version?",
+    hint: "Android 12 (API 31) brings responsive widget sizes, dynamic colour and simple list collections. Chronos itself requires API 32.",
+    o: [["Android 12 / API 31", "Covers almost all active devices; all modern widget APIs", true],
+        ["Android 13 / API 33"], ["Android 14 / API 34"],
+        ["Android 16 only (just the Pixel 9 Pro)"]] },
+  { id: "Q-06", type: "one", q: "Technology stack?",
+    hint: "Home-screen widgets are always RemoteViews underneath, so the widget part will be Kotlin/Java whatever is chosen.",
+    o: [["Kotlin + Jetpack Glance (+ Compose for config)", "Modern, declarative, good responsive-size support", true],
+        ["Kotlin + hand-written RemoteViews XML", "Maximum control, more boilerplate"],
+        ["Qt for Android for the app/config UI, Kotlin for the widget", "Two toolchains"],
+        ["Bitmap-rendered widget (draw everything on a Canvas)", "Full visual freedom; loses accessibility, per-event taps, memory limits"]] },
+  { id: "Q-07", type: "one", q: "UI languages?",
+    o: [["German + English", "", true], ["English only"], ["German only"], ["German + English + more (list below)"]] }
+]},
+{ id: "B", title: "B. Data sources & birthdays", lead: "Where do entries come from and how are birthdays treated?", qs: [
+  { id: "Q-08", type: "many", q: "Data sources besides the calendars already synced on the device?",
+    o: [["None — device calendars only (Google, Exchange, CalDAV via DAVx⁵ …)", "", true],
+        ["ICS / webcal URL subscriptions", "Requires network permission"],
+        ["Tasks from Tasks.org / OpenTasks provider"],
+        ["Google Tasks"]] },
+  { id: "Q-09", type: "one", q: "Where do birthdays come from?",
+    hint: "Chronos currently shows birthdays as pink gift chips.",
+    o: [["Google “Birthdays” calendar only"],
+        ["Contacts (ContactsContract birthday field) only", "Needs contacts permission; works without Google"],
+        ["Both, de-duplicated per person", "", true],
+        ["A manual birthday list inside the app"]] },
+  { id: "Q-10a", type: "many", q: "What should a birthday entry show?",
+    o: [["Gift / cake icon", "", true], ["Name", "", true], ["Age, e.g. “(40)” — only when the birth year is known", "", true],
+        ["Wording “turns 40”"], ["Days until (in agenda / birthday strip)"], ["Contact photo (agenda / strip only)"]] },
+  { id: "Q-10b", type: "one", q: "Birthdays on 29 February in non-leap years?",
+    o: [["Show on 28 February", "", true], ["Show on 1 March"], ["Don’t show"]] },
+  { id: "Q-11", type: "one", q: "Several birthdays on the same day?",
+    hint: "Chronos collapses them into “2 birthdays” (W6).",
+    o: [["List each individually (subject to normal overflow rules)", "", true],
+        ["List up to N, then “Anna, Ben +2”"],
+        ["Always aggregate into a count (Chronos behaviour)"],
+        ["Configurable per widget"]] },
+  { id: "Q-12", type: "many", q: "Show other contact dates as well?",
+    o: [["Anniversaries"], ["Custom contact events"], ["No, birthdays only", "", true]] },
+  { id: "Q-13", type: "one", q: "Duplicate entries (e.g. same holiday in two holiday calendars, W7)?",
+    o: [["De-duplicate same-day entries across holiday calendars only", "", true],
+        ["De-duplicate identical titles across all calendars"],
+        ["Prefer one holiday calendar and hide the others"],
+        ["Don’t de-duplicate"]] },
+  { id: "Q-14", type: "one", q: "Declined / cancelled events?",
+    o: [["Hide", "", true], ["Show dimmed"], ["Show struck through"], ["Show normally"]] },
+  { id: "Q-15", type: "one", q: "Calendar selection scope?",
+    o: [["Global default + optional per-widget override", "", true], ["Per widget only"], ["Global only"]] }
+]},
+{ id: "C", title: "C. Layouts & content fitting", lead: "The core of the project: how flexible layouts become and how content is fitted into space.", qs: [
+  { id: "Q-16", type: "many", q: "Which layout building blocks are needed (eventually)?",
+    o: [["Rolling day grid (N weeks from the current week — current Chronos widget)", "", true],
+        ["Classic month grid (1st to last day of month)"],
+        ["Agenda list grouped by day", "", true],
+        ["Week columns with time axis (timeline)"],
+        ["Single-day timeline"],
+        ["Birthday strip (upcoming birthdays, next N days)", "", true],
+        ["“Next up” card (next 1–3 events, big, with countdown)"],
+        ["Combination in one widget, e.g. grid on top + agenda below"]] },
+  { id: "Q-17", type: "one", q: "Where does the day grid start?",
+    o: [["First day of the current week (Chronos behaviour)", "", true],
+        ["Today"], ["Today minus N days (configurable)"], ["First day of the current month"],
+        ["Configurable per widget"]] },
+  { id: "Q-18", type: "one", q: "Number of weeks in the grid?",
+    o: [["Derived from widget height, user can override (1–6)", "", true],
+        ["Always derived from widget height"], ["Always set by the user"]] },
+  { id: "Q-19a", type: "one", q: "Past days in the grid (W8)?",
+    o: [["Same style as future days"], ["Dimmed", "", true], ["Hidden — grid starts today"], ["Configurable"]] },
+  { id: "Q-19b", type: "one", q: "Events of today that are already over?",
+    o: [["Dim them", "", true], ["Hide them"], ["Leave unchanged"]] },
+  { id: "Q-20", type: "one", q: "First day of the week?",
+    o: [["Follow locale / system setting", "", true], ["Always Monday"], ["Configurable"]] },
+  { id: "Q-21", type: "one", q: "Show ISO week numbers?",
+    o: [["No"], ["Yes"], ["Configurable (default off)", "", true]] },
+  { id: "Q-22", type: "many", q: "Overflow strategy when content doesn’t fit a cell (W1, W2)?",
+    hint: "Select all that may be used. Put your preferred priority order in the comment (e.g. “wrap → ellipsis → +N”).",
+    o: [["Wrap titles to 2 lines", "", true], ["Wrap titles to 3+ lines"], ["Shrink font down to a minimum size"],
+        ["Ellipsis “…” at the end (never clip mid-letter)", "", true], ["“+N more” indicator for hidden entries", "", true]] },
+  { id: "Q-23", type: "many", q: "Allowed space-saving fallbacks for narrow cells?",
+    o: [["Drop the weekday initial in the day header", "", true], ["Drop the event dot / icon", "", true],
+        ["Reduce inner padding", "", true], ["Strip leading emoji from titles"],
+        ["Abbreviate known words (e.g. “Geburtstag” → “Geb.”)"],
+        ["Let a title run into an empty neighbouring cell"]] },
+  { id: "Q-24", type: "one", q: "How are timed events displayed in the grid?",
+    o: [["Coloured dot + title (Chronos)"], ["Start time + title", "", true],
+        ["Outlined chip (to separate them from filled all-day chips)"], ["Configurable per widget"]] },
+  { id: "Q-25", type: "one", q: "Which time is shown for timed events?",
+    o: [["Start time only"], ["Start–end"], ["Start in grid, start–end in agenda", "", true], ["No time"]] },
+  { id: "Q-26", type: "one", q: "Multi-day events?",
+    o: [["Continuous bar spanning the days", "", true], ["Repeated chip on each day"], ["Only on the first day, with “→”"]] },
+  { id: "Q-27", type: "one", q: "Order of entries within a day?",
+    o: [["Birthdays → all-day → timed (by start)", "", true], ["All-day → timed → birthdays"],
+        ["By user-defined calendar priority, then time"], ["Strictly by start time"]] },
+  { id: "Q-28", type: "one", q: "Behaviour when the widget is resized?",
+    o: [["Adaptive: blocks switch or hide at size thresholds", "", true],
+        ["Fixed layout, content scales"], ["User chooses per widget"]] },
+  { id: "Q-29", type: "one", q: "How deep should layout customisation go (W11)?",
+    o: [["Presets only, with more options than Chronos"],
+        ["Presets + per-block settings", "Good balance for MVP → M2", true],
+        ["Composable: pick, order and size blocks per widget"],
+        ["Free-form drag & drop editor"]] },
+  { id: "Q-30", type: "many", q: "What may appear in the widget header?",
+    o: [["Nothing — maximise content", "", true], ["Month / range label"], ["Today’s date"],
+        ["Previous / next navigation"], ["Next upcoming event"], ["Weather (adds network + location)"]] }
+]},
+{ id: "D", title: "D. Look & theming", lead: "Visual design and density.", qs: [
+  { id: "Q-31a", type: "one", q: "Colour source?",
+    o: [["Material You dynamic colours"], ["Custom colours only"], ["Both, dynamic as default", "", true]] },
+  { id: "Q-31b", type: "one", q: "Light / dark mode?",
+    o: [["Follow system", "", true], ["Always dark"], ["Always light"], ["Configurable"]] },
+  { id: "Q-32", type: "one", q: "Background style?",
+    o: [["Per-cell backgrounds (like Chronos)"], ["One background with opacity slider"],
+        ["Both options, user chooses", "", true], ["Fully transparent only"]] },
+  { id: "Q-33", type: "many", q: "How are event colours determined?",
+    o: [["Event colour if set", "", true], ["Calendar colour as fallback", "", true],
+        ["Per-calendar colour override in the app"], ["Keyword rules (e.g. “Tonne”, “Müll” → brown)"]] },
+  { id: "Q-34", type: "one", q: "Text size control?",
+    o: [["One global scale"], ["Per element (date, title, time, header)", "", true], ["Automatic from widget size only"]] },
+  { id: "Q-35", type: "one", q: "Today highlight?",
+    o: [["Filled circle on the day number (Chronos)", "", true], ["Tinted cell"], ["Cell border"], ["Circle + tinted cell"]] },
+  { id: "Q-36", type: "one", q: "Weekend styling (W9)?",
+    o: [["None"], ["Tinted cell background"], ["Coloured day numbers"], ["Configurable", "", true]] },
+  { id: "Q-37", type: "one", q: "Density?",
+    o: [["Compact (max content)"], ["Comfortable"], ["Configurable (default compact)", "", true]] }
+]},
+{ id: "E", title: "E. Interaction", lead: "What happens when the widget is touched.", qs: [
+  { id: "Q-38", type: "one", q: "Tap on a day (empty area)?",
+    o: [["Open calendar app at that date", "", true], ["Open in-app day popup"], ["Create a new event on that date"], ["Nothing"]] },
+  { id: "Q-39", type: "one", q: "Tap on an event?",
+    o: [["Open the event in the calendar app", "", true], ["Open an in-app detail sheet"], ["Same as tapping the day"]] },
+  { id: "Q-40", type: "one", q: "Navigation inside the widget?",
+    o: [["None — always shows the current range", "", true], ["Previous / next arrows"], ["Arrows + “today” button"]] },
+  { id: "Q-41", type: "one", q: "Which calendar app is opened?",
+    o: [["System default"], ["Google Calendar"], ["User-selectable", "", true]] }
+]},
+{ id: "F", title: "F. Behaviour, non-functional & delivery", lead: "Refresh, privacy, quality and what goes into the first version.", qs: [
+  { id: "Q-42", type: "one", q: "Refresh strategy?",
+    o: [["Event-driven only (calendar change, midnight, time/zone change)", "", true],
+        ["Event-driven + periodic every 30 min"], ["Event-driven + periodic every 15 min (only with subscriptions)"]] },
+  { id: "Q-43", type: "one", q: "Network access?",
+    o: [["Never — no INTERNET permission"], ["Only if ICS subscriptions are used", "", true], ["Allowed in general"]] },
+  { id: "Q-44", type: "one", q: "Privacy mode (hide titles, show only coloured bars)?",
+    o: [["Not needed", "", true], ["Optional per widget"], ["Automatically on the lock screen / hub"]] },
+  { id: "Q-45", type: "one", q: "Accessibility level?",
+    o: [["Full TalkBack support (descriptions for every day and event)", "", true], ["Basic content descriptions"], ["Not a priority"]] },
+  { id: "Q-46", type: "one", q: "Configuration screen?",
+    o: [["Live preview at the real widget size", "", true], ["Settings list + static preview"], ["Plain settings list"]] },
+  { id: "Q-47", type: "many", q: "Backup of widget configuration?",
+    o: [["Android Auto Backup", "", true], ["Export / import to a file"], ["None"]] },
+  { id: "Q-48", type: "one", q: "What must the first usable version (M1) contain?",
+    o: [["Rolling grid + birthdays, fixing W1–W8", "Smallest version that beats Chronos", true],
+        ["Grid + agenda"], ["Grid + agenda + birthday strip + next-up"], ["Everything up to the composable editor"]] },
+  { id: "Q-49", type: "many", q: "Test targets?",
+    o: [["Pixel 9 Pro / Pixel Launcher", "", true], ["Emulators with several sizes & API levels"],
+        ["Samsung One UI launcher"], ["Third-party launchers (Nova, Lawnchair …)"]] },
+  { id: "Q-50", type: "one", q: "Source code licence?",
+    o: [["Private / no licence", "", true], ["MIT or Apache-2.0"], ["GPL-3.0"], ["Undecided"]] }
+]}
+];
+
+const KEY = "whats-up-questionnaire-v1";
+const NOPREF = "No preference — decide for me";
+let state = JSON.parse(localStorage.getItem(KEY) || "{}");
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const allQs = () => SECTIONS.flatMap(s => s.qs);
+
+function render() {
+  const toc = document.getElementById("toc");
+  const form = document.getElementById("form");
+  toc.innerHTML = SECTIONS.map(s => `<a href="#sec-${s.id}">${esc(s.title)}</a>`).join("");
+  form.innerHTML = SECTIONS.map(s => `
+    <section id="sec-${s.id}">
+      <h2>${esc(s.title)}</h2>
+      <p class="lead">${esc(s.lead)}</p>
+      ${s.qs.map(renderQ).join("")}
+    </section>`).join("");
+  form.addEventListener("change", onChange);
+  form.addEventListener("input", e => { if (e.target.tagName === "TEXTAREA") onChange(e); });
+  restore();
+}
+
+function renderQ(q) {
+  const input = q.type === "one" ? "radio" : "checkbox";
+  const opts = q.o.map((o, i) => `
+    <label><input type="${input}" name="${q.id}" value="${i}">
+      <span>${esc(o[0])}${o[2] ? '<span class="rec">recommended</span>' : ""}
+      ${o[1] ? `<span class="desc">${esc(o[1])}</span>` : ""}</span></label>`).join("");
+  const nopref = q.type === "one"
+    ? `<label class="nopref"><input type="radio" name="${q.id}" value="np"><span>${NOPREF}</span></label>` : "";
+  return `
+    <div class="q" id="${q.id}">
+      <h3><span class="id">${q.id}</span>${esc(q.q)}<span class="kind">${q.type === "one" ? "choose one" : "choose any"}</span></h3>
+      ${q.hint ? `<p class="hint">${esc(q.hint)}</p>` : ""}
+      <div class="opts">${opts}${nopref}</div>
+      <textarea name="${q.id}-note" placeholder="Other / comments (optional)"></textarea>
+    </div>`;
+}
+
+function onChange(e) {
+  const name = e.target.name.replace(/-note$/, "");
+  const q = allQs().find(x => x.id === name);
+  if (!q) return;
+  const box = document.getElementById(q.id);
+  const picked = [...box.querySelectorAll("input:checked")].map(i => i.value);
+  const note = box.querySelector("textarea").value;
+  state[q.id] = { picked, note };
+  localStorage.setItem(KEY, JSON.stringify(state));
+  updateProgress();
+}
+
+function restore() {
+  for (const q of allQs()) {
+    const s = state[q.id];
+    if (!s) continue;
+    const box = document.getElementById(q.id);
+    box.querySelectorAll("input").forEach(i => { i.checked = s.picked.includes(i.value); });
+    box.querySelector("textarea").value = s.note || "";
+  }
+  updateProgress();
+}
+
+function isAnswered(q) {
+  const s = state[q.id];
+  return !!s && (s.picked.length > 0 || (s.note || "").trim() !== "");
+}
+
+function updateProgress() {
+  const qs = allQs();
+  const done = qs.filter(isAnswered).length;
+  qs.forEach(q => document.getElementById(q.id).classList.toggle("answered", isAnswered(q)));
+  document.getElementById("bar").style.width = (100 * done / qs.length) + "%";
+  document.getElementById("progressText").textContent = `${done} / ${qs.length} answered`;
+}
+
+function answerLabels(q) {
+  const s = state[q.id] || { picked: [], note: "" };
+  return s.picked.map(v => v === "np"
+    ? NOPREF + " (use recommended: " + (q.o.filter(o => o[2]).map(o => o[0]).join(", ") || "author decides") + ")"
+    : q.o[+v][0]);
+}
+
+function toMarkdown() {
+  const lines = ["# whats-up — Questionnaire answers", "",
+    `Exported: ${new Date().toISOString()}`, "",
+    "Private project document. Generated with Claude AI — validate before use.", ""];
+  for (const s of SECTIONS) {
+    lines.push(`## ${s.title}`, "");
+    for (const q of s.qs) {
+      const a = answerLabels(q);
+      const note = ((state[q.id] || {}).note || "").trim();
+      lines.push(`**${q.id} ${q.q}**`);
+      lines.push(a.length ? a.map(x => `- ${x}`).join("\n") : "- _(unanswered)_");
+      if (note) lines.push(`- Note: ${note.replace(/\n/g, " ")}`);
+      lines.push("");
+    }
+  }
+  return lines.join("\n");
+}
+
+function toJson() {
+  const out = { exported: new Date().toISOString(), version: 1, answers: {} };
+  for (const q of allQs()) {
+    const s = state[q.id] || { picked: [], note: "" };
+    out.answers[q.id] = { question: q.q, answers: answerLabels(q), picked: s.picked, note: s.note || "" };
+  }
+  return JSON.stringify(out, null, 2);
+}
+
+let pending = null;
+function showExport(title, text, filename, mime) {
+  pending = { text, filename, mime };
+  document.getElementById("dlgTitle").textContent = title;
+  document.getElementById("dlgBody").textContent = text;
+  document.getElementById("dlg").showModal();
+}
+
+document.getElementById("btnMd").onclick = () =>
+  showExport("Markdown export", toMarkdown(), "whats-up-questionnaire-answers.md", "text/markdown");
+document.getElementById("btnJson").onclick = () =>
+  showExport("JSON export", toJson(), "whats-up-questionnaire-answers.json", "application/json");
+document.getElementById("dlgClose").onclick = () => document.getElementById("dlg").close();
+document.getElementById("dlgCopy").onclick = async () => {
+  try { await navigator.clipboard.writeText(pending.text); document.getElementById("dlgCopy").textContent = "Copied ✓"; }
+  catch { alert("Clipboard not available — select the text and copy manually."); }
+  setTimeout(() => { document.getElementById("dlgCopy").textContent = "Copy to clipboard"; }, 1500);
+};
+document.getElementById("dlgSave").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([pending.text], { type: pending.mime }));
+  a.download = pending.filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+document.getElementById("btnImport").onclick = () => document.getElementById("fileImport").click();
+document.getElementById("fileImport").onchange = async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    state = {};
+    for (const [id, a] of Object.entries(data.answers || {})) state[id] = { picked: a.picked || [], note: a.note || "" };
+    localStorage.setItem(KEY, JSON.stringify(state));
+    restore();
+  } catch (err) { alert("Could not import: " + err.message); }
+  e.target.value = "";
+};
+document.getElementById("btnReset").onclick = () => {
+  if (!confirm("Clear all answers?")) return;
+  state = {};
+  localStorage.removeItem(KEY);
+  restore();
+  document.querySelectorAll("#form input").forEach(i => { i.checked = false; });
+  document.querySelectorAll("#form textarea").forEach(t => { t.value = ""; });
+  updateProgress();
+};
+
+render();
+</script>
+</body>
+</html>
