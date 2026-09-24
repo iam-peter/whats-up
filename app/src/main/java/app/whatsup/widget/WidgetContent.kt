@@ -41,7 +41,7 @@ import app.whatsup.logic.ChipTarget
 import app.whatsup.logic.DayCell
 import app.whatsup.logic.GridMetrics
 import app.whatsup.logic.GridModel
-import app.whatsup.logic.GIFT
+import app.whatsup.logic.ICON_PREFIX
 import app.whatsup.logic.GridModelBuilder
 import app.whatsup.model.CalendarEntry
 import java.time.Instant
@@ -185,7 +185,7 @@ private fun ChipView(chip: Chip, cfg: WidgetConfig, m: GridMetrics, palette: Wid
                 .cornerRadius(3.dp)
                 .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
                 .clickable(actionStartActivity(Intents.forTarget(context, chip.target, cfg.calendarPackage)))
-                .semantics { contentDescription = chip.text.removePrefix("$GIFT\u00A0") },
+                .semantics { contentDescription = chip.text.removePrefix(ICON_PREFIX) },
             style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
         )
     }

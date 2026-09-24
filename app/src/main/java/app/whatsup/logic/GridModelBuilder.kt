@@ -12,6 +12,9 @@ import kotlin.math.floor
 
 const val GIFT = "\uD83C\uDF81"
 
+/** The no-break space keeps the icon on the same line as the text. */
+const val ICON_PREFIX = "$GIFT\u00A0"
+
 /**
  * Turns entries + widget size into a fully fitted [GridModel]. All text
  * decisions (wrapping, "…", "+N") happen here, before any Glance view is
@@ -30,6 +33,9 @@ class GridModelBuilder(
 
         /** Below this cell width, drop icons and reduce padding (FR-L6). */
         const val NARROW_CELL_DP = 44f
+
+        /** A birthday keeps its icon only if at least this much of the name stays visible. */
+        const val MIN_VISIBLE_NAME_CHARS = 4
 
         /** Safety margin against rounding differences between measuring and rendering. */
         private const val WIDTH_SLACK_DP = 1f
@@ -104,9 +110,7 @@ class GridModelBuilder(
         val fit = CellFitter.fit(candidates, capacity, maxLinesPerItem = 2, maxItems = MAX_CHIPS_PER_CELL) {
             measurer.lineCount(it.text, textWidth, m.textSp)
         }
-        val chips = fit.visible.map { (chip, lines) ->
-            chip.copy(text = measurer.ellipsize(chip.text, lines, textWidth, m.textSp), maxLines = lines)
-        }
+        val chips = fit.visible.map { (chip, lines) -> fitText(chip, lines, textWidth, m.textSp) }
         return DayCell(
             date = day,
             isToday = day == today,
@@ -117,6 +121,16 @@ class GridModelBuilder(
             moreText = if (fit.hidden > 0) labels.more(fit.hidden) else null,
             description = labels.dayDescription(day, day == today, candidates.map { it.text }, 0),
         )
+    }
+
+    /** Ellipsises the chip text; drops the icon if it would leave too little of the name. */
+    private fun fitText(chip: Chip, lines: Int, width: Float, textSp: Float): Chip {
+        val fitted = measurer.ellipsize(chip.text, lines, width, textSp)
+        val plain = chip.plainText
+        val visibleName = fitted.removePrefix(ICON_PREFIX).removeSuffix("…").length
+        val keepIcon = fitted == chip.text || visibleName >= MIN_VISIBLE_NAME_CHARS
+        val text = if (plain == null || keepIcon) fitted else measurer.ellipsize(plain, lines, width, textSp)
+        return chip.copy(text = text, maxLines = lines, plainText = null)
     }
 
     private fun chipCandidates(
@@ -132,18 +146,10 @@ class GridModelBuilder(
         when (birthdays.size) {
             0 -> Unit
             1 -> birthdays.single().let { b ->
-                result += Chip(
-                    text = withIcon(labels.birthdayText(b.title, b.age), showIcons),
-                    maxLines = 1, color = b.color, style = ChipStyle.FILLED, dimmed = isPast,
-                    target = ChipTarget.InAppDay(day),
-                )
+                result += birthdayChip(labels.birthdayText(b.title, b.age), b.color, day, isPast, showIcons)
             }
             // Spec D-3: several birthdays are always aggregated.
-            else -> result += Chip(
-                text = withIcon(labels.birthdays(birthdays.size), showIcons),
-                maxLines = 1, color = birthdays.first().color, style = ChipStyle.FILLED, dimmed = isPast,
-                target = ChipTarget.InAppDay(day),
-            )
+            else -> result += birthdayChip(labels.birthdays(birthdays.size), birthdays.first().color, day, isPast, showIcons)
         }
         for (e in events) {
             val timed = e.kind == EntryKind.TIMED
@@ -162,6 +168,13 @@ class GridModelBuilder(
         return result
     }
 
-    private fun withIcon(text: String, showIcons: Boolean) = // No-break space keeps the icon on the same line as the text.
-        if (showIcons) "$GIFT\u00A0$text" else text
+    private fun birthdayChip(text: String, color: Int, day: LocalDate, isPast: Boolean, showIcons: Boolean) = Chip(
+        text = if (showIcons) ICON_PREFIX + text else text,
+        maxLines = 1,
+        color = color,
+        style = ChipStyle.FILLED,
+        dimmed = isPast,
+        target = ChipTarget.InAppDay(day),
+        plainText = if (showIcons) text else null,
+    )
 }

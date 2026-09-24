@@ -20,6 +20,8 @@ data class Chip(
     val style: ChipStyle,
     val dimmed: Boolean,
     val target: ChipTarget,
+    /** The text without its icon, used when the icon would crowd out the name. */
+    val plainText: String? = null,
 )
 
 data class DayCell(

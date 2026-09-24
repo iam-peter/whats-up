@@ -78,6 +78,19 @@ class GridModelBuilderTest {
         assertEquals(ChipTarget.InAppDay(today), chips[0].target)
     }
 
+    private fun birthday(name: String) = CalendarEntry(EntryKind.BIRTHDAY, name, 0, today)
+
+    @Test fun `icon is dropped when it would crowd out the name`() {
+        // 380 dp wide, one line per cell: six characters fit, the icon takes three.
+        val chip = build(listOf(birthday("Alexander")), w = 380f, h = 60f).weeks[0][3].chips.single()
+        assertEquals("Alexa…", chip.text)
+    }
+
+    @Test fun `icon stays when the name still fits`() {
+        val chip = build(listOf(birthday("Bo")), w = 380f, h = 60f).weeks[0][3].chips.single()
+        assertEquals(ICON_PREFIX + "Bo", chip.text)
+    }
+
     @Test fun `overflow yields plus N and nothing is longer than allowed`() {
         val many = (8..20).map { timed("A rather long meeting title $it", it) }
         val cell = build(many).weeks[0][3]

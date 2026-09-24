@@ -3,7 +3,7 @@ package app.whatsup.widget
 import android.content.Context
 import android.text.format.DateFormat
 import app.whatsup.R
-import app.whatsup.logic.GIFT
+import app.whatsup.logic.ICON_PREFIX
 import app.whatsup.logic.GridLabels
 import java.time.DayOfWeek
 import java.time.Instant
@@ -31,7 +31,7 @@ class AndroidLabels(private val context: Context, private val zone: ZoneId = Zon
             append(dayFormat.format(date))
             if (isToday) append(", ").append(context.getString(R.string.today))
             append(", ").append(res.getQuantityString(R.plurals.entries_count, entries.size, entries.size))
-            if (entries.isNotEmpty()) append(": ").append(entries.joinToString("; ") { it.removePrefix("$GIFT\u00A0") })
+            if (entries.isNotEmpty()) append(": ").append(entries.joinToString("; ") { it.removePrefix(ICON_PREFIX) })
         }
     }
 }
