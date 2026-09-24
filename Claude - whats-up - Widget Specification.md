@@ -185,7 +185,10 @@ combinations the presets offer.
 - **FR-L4** Before building the Glance tree, the layout engine measures
   the text for the actual cell size in dp, using `StaticLayout`.
 - **FR-L5** Overflow strategy per cell, in this fixed order (Q-22):
-  1. Wrap a title to **at most 2 lines** if the cell height allows it.
+  1. Wrap a title to **at most 2 lines** if the cell height allows it,
+     but only at word boundaries (whitespace, or after "-", "/", "–",
+     "—"). A title whose wrap would break inside a word stays on **one
+     line** with "…" instead, e.g. "Sport…" rather than "Sportz / eug!".
   2. Ellipsise at the end ("…"). Never clip mid-glyph.
   3. When entries don't fit vertically, replace the rest with
      "**+N**".

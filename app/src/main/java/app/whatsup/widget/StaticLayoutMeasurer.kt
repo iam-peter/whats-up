@@ -8,6 +8,7 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.util.TypedValue
 import app.whatsup.logic.TextMeasurer
+import app.whatsup.logic.WordBreaks
 import kotlin.math.max
 
 /** Measures with the same metrics the widget TextViews use (bold, system font). */
@@ -33,7 +34,10 @@ class StaticLayoutMeasurer(context: Context) : TextMeasurer {
             .setEllipsize(TextUtils.TruncateAt.END)
             .build()
 
-    override fun lineCount(text: String, widthDp: Float, textSp: Float) = layout(text, widthDp, textSp).lineCount
+    override fun lineCount(text: String, widthDp: Float, textSp: Float): Int {
+        val l = layout(text, widthDp, textSp)
+        return WordBreaks.linesWithoutMidWordBreak(text, (0 until l.lineCount).map(l::getLineEnd))
+    }
 
     override fun ellipsize(text: String, maxLines: Int, widthDp: Float, textSp: Float): String {
         val l = layout(text, widthDp, textSp, maxLines)

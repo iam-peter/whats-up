@@ -30,6 +30,5 @@ export JAVA_HOME=/opt/android-studio/jbr
 
 - Spike S2: multi-day events as spanning bars (currently repeated per day).
 - Calendar app picker (Q-41).
-- Tuning: words are broken mid-word when a title wraps to two lines.
 - Tuning: the line-height estimate still leaves some vertical space unused.
 - Glance screenshot tests at 170 × 40 dp, 4 × 2 and 5 × 4 cells.
