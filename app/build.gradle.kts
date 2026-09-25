@@ -15,22 +15,35 @@ android {
         // CI passes -PversionCode/-PversionName so nightly builds install over each other.
         versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
         versionName = (project.findProperty("versionName") as String?) ?: "0.1.0"
+        manifestPlaceholders["appLabel"] = "@string/app_name"
+        manifestPlaceholders["widgetLabel"] = "@string/widget_name"
     }
 
     signingConfigs {
-        // Shared debug key (committed, not secret), so local and CI builds can
-        // update each other on the phone.
-        getByName("debug") {
-            storeFile = file("whatsup-debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+        // The release key never enters the repository: CI restores it from
+        // secrets, locally it can be passed the same way.
+        create("release") {
+            System.getenv("WHATSUP_KEYSTORE")?.let { path ->
+                storeFile = file(path)
+                storePassword = System.getenv("WHATSUP_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("WHATSUP_KEY_ALIAS") ?: "whatsup"
+                keyPassword = System.getenv("WHATSUP_KEYSTORE_PASSWORD")
+            }
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            // Without the key, the release APK is left unsigned.
+            signingConfig = signingConfigs.getByName("release").takeIf { it.storeFile != null }
+        }
+        debug {
+            // Installs next to the signed release build instead of replacing it.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            manifestPlaceholders["appLabel"] = "whats-up (debug)"
+            manifestPlaceholders["widgetLabel"] = "whats-up calendar (debug)"
         }
     }
 

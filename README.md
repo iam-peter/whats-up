@@ -54,10 +54,28 @@ workflow** builds on demand. The APK is published as the `nightly`
 pre-release (**Releases → Nightly → whats-up-nightly.apk**) and as a
 workflow artifact.
 
-Local and CI builds are signed with the same committed debug key
-(`app/whatsup-debug.keystore`), so they install over each other. CI builds
-get `versionCode` 1000 + run number; a local build installed over one needs
-`adb install -r -d`.
+### Signing
+
+Nightly APKs are release builds signed with a private key that is not in
+the repository. CI restores it from two repository secrets
+(**Settings → Secrets and variables → Actions**):
+
+| Secret | Content |
+|---|---|
+| `WHATSUP_KEYSTORE_BASE64` | The PKCS#12 keystore, base64-encoded on one line |
+| `WHATSUP_KEYSTORE_PASSWORD` | Its password (store and key use the same one) |
+
+The key alias is `whatsup`. Keep a backup of the keystore: without it,
+updates can't be signed and every install would need an uninstall first.
+
+Local builds are debug builds with the application ID `app.whatsup.debug`
+("whats-up (debug)"), so they install next to the nightly instead of
+replacing it. A signed release build works locally too:
+
+```bash
+WHATSUP_KEYSTORE=/path/to/whatsup-release.p12 WHATSUP_KEYSTORE_PASSWORD=... \
+  ./gradlew :app:assembleRelease
+```
 
 ## Layout
 

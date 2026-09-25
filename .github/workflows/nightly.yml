@@ -51,14 +51,27 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
+      - name: Restore the release key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.WHATSUP_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::Repository secret WHATSUP_KEYSTORE_BASE64 is not set (see README, Signing)."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/whatsup-release.p12"
+          echo "WHATSUP_KEYSTORE=$RUNNER_TEMP/whatsup-release.p12" >> "$GITHUB_ENV"
+
       - name: Test and build
+        env:
+          WHATSUP_KEYSTORE_PASSWORD: ${{ secrets.WHATSUP_KEYSTORE_PASSWORD }}
         run: |
           version="0.1.0-nightly.$(date -u +%Y%m%d)+${GITHUB_SHA::7}"
           echo "VERSION=$version" >> "$GITHUB_ENV"
-          # Offset keeps CI builds above local builds (versionCode 1).
-          ./gradlew :app:testDebugUnitTest :app:assembleDebug \
+          ./gradlew :app:testDebugUnitTest :app:assembleRelease \
             -PversionCode=$((1000 + GITHUB_RUN_NUMBER)) -PversionName="$version"
-          cp app/build/outputs/apk/debug/app-debug.apk whats-up-nightly.apk
+          cp app/build/outputs/apk/release/app-release.apk whats-up-nightly.apk
+          rm -f "$WHATSUP_KEYSTORE"
 
       - uses: actions/upload-artifact@v7
         with:
@@ -72,4 +85,4 @@ jobs:
           gh release delete nightly --cleanup-tag --yes 2>/dev/null || true
           gh release create nightly whats-up-nightly.apk \
             --target "$GITHUB_SHA" --prerelease --title "Nightly $VERSION" \
-            --notes "Debug build of ${GITHUB_SHA::7} ($(date -u '+%Y-%m-%d %H:%M UTC')). Install whats-up-nightly.apk on the phone."
+            --notes "Build of ${GITHUB_SHA::7} ($(date -u '+%Y-%m-%d %H:%M UTC')). Install whats-up-nightly.apk on the phone."
