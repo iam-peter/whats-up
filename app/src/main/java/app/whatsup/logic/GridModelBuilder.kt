@@ -44,6 +44,7 @@ class GridModelBuilder(
             textSp = textSp,
             lineHeightDp = measurer.textHeightDp(textSp) + 2 * chipVPadding + 1f,
             headerHeightDp = textSp * 1.3f + 2f,
+            headerInsetDp = 2f,
             // Compact matches Chronos: chips nearly fill the cell, so titles get the width.
             cellPaddingDp = if (comfortable) 4f else 1f,
             chipHPaddingDp = if (narrow) 1f else if (comfortable) 3f else 2f,
@@ -73,7 +74,7 @@ class GridModelBuilder(
         val cellWidth = (widthDp - 2 * provisional.outerPaddingDp - provisional.weekNumberWidthDp) / 7f
         val m = metrics(cfg, narrow = cellWidth < NARROW_CELL_DP, cornerRadiusDp).copy(cellWidthDp = cellWidth)
         val cellHeight = (heightDp - 2 * m.outerPaddingDp) / weekCount
-        val contentHeight = cellHeight - 2 * m.gapDp - 2 * m.cellPaddingDp - m.headerHeightDp
+        val contentHeight = cellHeight - 2 * m.gapDp - 2 * m.cellPaddingDp - m.headerInsetDp - m.headerHeightDp
         val capacity = floor(contentHeight / m.lineHeightDp).toInt().coerceAtLeast(0)
 
         val sorted = entries.sortedWith(entryOrder)
@@ -152,6 +153,7 @@ class GridModelBuilder(
             isToday = day == today,
             isPast = isPast,
             isWeekend = day.dayOfWeek == DayOfWeek.SATURDAY || day.dayOfWeek == DayOfWeek.SUNDAY,
+            isNextMonth = day.isAfter(today) && (day.year > today.year || day.monthValue > today.monthValue),
             weekdayLabel = if (firstRow) labels.weekdayInitial(day.dayOfWeek) else null,
             chips = fit.visible.map { it.item },
             moreText = if (fit.hidden > 0) labels.more(fit.hidden) else null,

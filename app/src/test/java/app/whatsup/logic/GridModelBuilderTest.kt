@@ -154,4 +154,10 @@ class GridModelBuilderTest {
         val past = allDay("Past", LocalDate.of(2026, 9, 21), LocalDate.of(2026, 9, 22))
         assertTrue(build(listOf(past)).weeks[0].lanes.single().single().chip.dimmed)
     }
+
+    @Test fun `days of the next month are marked`() {
+        val model = build(emptyList())
+        assertFalse(model.day(1, 2).isNextMonth) // 30 September
+        assertTrue(model.day(1, 3).isNextMonth)  // 1 October
+    }
 }

@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.4
+Version: v1.5
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -113,7 +113,7 @@ stored as `TypedValue` complex values. For example, `43521` = 0xAA01 =
 | W2 | Unused vertical space while titles are cut | ✅ | Compact padding; multi-day bars share one lane across the week (FR-E2) |
 | W3 | Timed events show no time | ✅ | FR-E3: start time in an outlined chip |
 | W4 | Right column clipped by the widget edge | ✅ | FR-T5 |
-| W5 | Inconsistent cell backgrounds across the range | ✅ | FR-T2 |
+| W5 | Next-month days have no cell background | kept | Kept on purpose in v1.5: it marks the next month (FR-T2) |
 | W6 | "2 birthdays" hides the names | ❌ kept | The user chose aggregation (Q-11); names are shown in the in-app day view (D-3) |
 | W7 | Duplicate holidays | ✅ | FR-D5 |
 | W8 | Past days look like future days | ✅ | FR-E5 |
@@ -299,12 +299,13 @@ combinations the presets offer.
   presets; surfaces use the standard Material palette (Q-31a). The widget
   follows the system light and dark mode (Q-31b).
 - **FR-T2** Background (Q-32), as the user chooses:
-  - **per-cell backgrounds**, applied uniformly to every cell in the range
-    (fixes W5), or
+  - **per-cell backgrounds**; days of the months after today's have none,
+    as in the Chronos month widget (v1.5, replaces the W5 fix), or
   - **one background** with an opacity slider from 0 to 100 %.
 - **FR-T3** One **global text scale** (Q-34).
-- **FR-T4** Today is marked with a **cell border** in the accent colour
-  (Q-35). Weekend styling is configurable, off by default (Q-36).
+- **FR-T4** Today is marked with a thin (1 dp) **cell border** in the
+  accent colour (Q-35); the day letter and number are inset so the border
+  doesn't touch them. Weekend styling is configurable, off by default (Q-36).
   ISO week numbers are configurable, off by default (Q-21). The first day
   of the week follows the locale (Q-20).
 - **FR-T5** The widget honours `system_app_widget_background_radius` and
@@ -421,8 +422,8 @@ combinations the presets offer.
   word boundaries before they are clipped.
 - **Times shown.** Timed events show their start time in an outlined chip.
 - **No duplicate holidays.** Holidays such as 3 October appear once.
-- **Consistent cells and dimming.** Every cell in the range has the same
-  background style, and past days are dimmed.
+- **Cells and dimming.** Current-month days have a cell background, next-month
+  days none, and past days are dimmed.
 - **Resizes like Chronos.** The widget resizes down to 170 × 40 dp and
   remains readable (one week).
 - **Timely updates.** The widget updates within 5 s of a calendar change
@@ -473,5 +474,6 @@ figures must be validated against primary sources before external use.
 | v1.2 | 24 September 2026 | Henning Gründl | Clip instead of ellipsis (FR-L5); monochrome cake icon with an always/never setting (FR-B2, FR-B6) — generated with Claude AI |
 | v1.3 | 25 September 2026 | Henning Gründl | Licence decided: Apache-2.0 (D-1) — generated with Claude AI |
 | v1.4 | 25 September 2026 | Henning Gründl | Single-line entries clipped at the pixel edge (FR-L5); multi-day bars (FR-E2); event-time option (FR-E3); accent colour (FR-T1); holiday calendars marked by hand (FR-D5); calendar app picker (FR-I3); day view uses the widget's calendars (FR-I4) — generated with Claude AI |
+| v1.5 | 25 September 2026 | Henning Gründl | Next-month days without cell background, thinner today border with inset header (FR-T2, FR-T4) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

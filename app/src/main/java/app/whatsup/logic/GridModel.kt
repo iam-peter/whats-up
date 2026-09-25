@@ -40,6 +40,8 @@ data class DayCell(
     val isToday: Boolean,
     val isPast: Boolean,
     val isWeekend: Boolean,
+    /** In a month after today's: drawn without a cell background, like Chronos. */
+    val isNextMonth: Boolean,
     /** Only set in the first row (Chronos behaviour). */
     val weekdayLabel: String?,
     val chips: List<Chip>,
@@ -71,6 +73,8 @@ data class GridMetrics(
     /** One entry line: a chip including padding and spacing. */
     val lineHeightDp: Float,
     val headerHeightDp: Float,
+    /** Extra inset of the day letter and number, so the today border doesn't touch them. */
+    val headerInsetDp: Float,
     val cellPaddingDp: Float,
     val chipHPaddingDp: Float,
     val chipVPaddingDp: Float,

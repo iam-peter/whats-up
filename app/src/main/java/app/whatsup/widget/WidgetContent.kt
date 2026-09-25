@@ -125,7 +125,7 @@ private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m
             week.days.forEach { DayBackground(it, cfg, m, palette, GlanceModifier.defaultWeight().fillMaxHeight()) }
         }
         Column(GlanceModifier.fillMaxSize()) {
-            Row(GlanceModifier.fillMaxWidth().padding(top = inset)) {
+            Row(GlanceModifier.fillMaxWidth().padding(top = inset + m.headerInsetDp.dp)) {
                 if (showWeekNumbers) {
                     Text(
                         week.weekNumber?.toString() ?: "",
@@ -133,7 +133,7 @@ private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m
                         style = TextStyle(color = palette.onCellDim, fontSize = (m.textSp * 0.85f).sp, textAlign = TextAlign.Center),
                     )
                 }
-                week.days.forEach { DayHeader(it, m, palette, GlanceModifier.defaultWeight().padding(horizontal = inset)) }
+                week.days.forEach { DayHeader(it, m, palette, GlanceModifier.defaultWeight().padding(horizontal = inset + m.headerInsetDp.dp)) }
             }
             week.lanes.forEach { LaneRow(it, weekNumberColumn, state, m, palette) }
             Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
@@ -148,7 +148,8 @@ private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m
 private fun DayBackground(cell: DayCell, cfg: WidgetConfig, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
     var body = GlanceModifier.fillMaxSize()
     val tintWeekend = cfg.weekendStyle == WeekendStyle.TINTED && cell.isWeekend
-    if (cfg.background == BackgroundStyle.PER_CELL || tintWeekend) {
+    // Days of the next month have no cell background, as in the Chronos month widget.
+    if ((cfg.background == BackgroundStyle.PER_CELL && !cell.isNextMonth) || tintWeekend) {
         body = body.background(if (tintWeekend) palette.weekendCell else palette.cell).cornerRadius(4.dp)
     }
     body = body
