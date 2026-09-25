@@ -1,5 +1,6 @@
 package app.whatsup.ui
 
+import android.appwidget.AppWidgetManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -57,19 +58,23 @@ class DayActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val date = intent.getStringExtra(EXTRA_DATE)?.let(LocalDate::parse) ?: LocalDate.now()
-        setContent { AppTheme { Surface(Modifier.fillMaxSize()) { DayScreen(date) } } }
+        val appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+        setContent { AppTheme { Surface(Modifier.fillMaxSize()) { DayScreen(date, appWidgetId) } } }
     }
 }
 
 @Composable
-private fun DayScreen(date: LocalDate) {
+private fun DayScreen(date: LocalDate, appWidgetId: Int) {
     val context = LocalContext.current
     val labels = remember { AndroidLabels(context) }
     var entries by remember { mutableStateOf<List<CalendarEntry>>(emptyList()) }
+    var calendarPackage by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(date) {
         val config = context.configStore.data.first()
+        calendarPackage = config.widget(appWidgetId).calendarPackage
         entries = withContext(Dispatchers.IO) {
-            EntryLoader(context).load(date, date, config, config.global.calendarIds).sortedWith(entryOrder)
+            // The widget's own calendar selection, if it was opened from one.
+            EntryLoader(context).load(date, date, config, config.calendarIdsFor(appWidgetId)).sortedWith(entryOrder)
         }
     }
     Column(Modifier.safeDrawingPadding().padding(16.dp)) {
@@ -83,7 +88,7 @@ private fun DayScreen(date: LocalDate) {
                 }
                 Row(
                     Modifier.fillMaxWidth().clickable(enabled = e.eventId != null) {
-                        context.startActivity(Intents.forTarget(context, ChipTarget.Event(e.eventId!!, e.start, e.end), null))
+                        context.startActivity(Intents.forTarget(context, ChipTarget.Event(e.eventId!!, e.start, e.end), calendarPackage))
                     }.padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

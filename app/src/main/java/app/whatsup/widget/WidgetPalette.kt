@@ -25,7 +25,8 @@ class WidgetPalette(context: Context, cfg: WidgetConfig) {
     val weekendCell: ColorProvider = DayNight(light.surfaceContainerHighest, dark.surfaceContainerHighest)
     val onCell: ColorProvider = DayNight(light.onSurface, dark.onSurface)
     val onCellDim: ColorProvider = DayNight(light.onSurface.copy(alpha = 0.45f), dark.onSurface.copy(alpha = 0.45f))
-    val accent: ColorProvider = DayNight(light.primary, dark.primary)
+    // Custom accent when dynamic colours are off (FR-T1).
+    val accent: ColorProvider = if (cfg.dynamicColors) DayNight(light.primary, dark.primary) else fixed(Color(cfg.accentColor), 1f)
     val onChip: ColorProvider = DayNight(Color.White, Color.White)
     val onChipDim: ColorProvider = DayNight(Color.White.copy(alpha = 0.6f), Color.White.copy(alpha = 0.6f))
 

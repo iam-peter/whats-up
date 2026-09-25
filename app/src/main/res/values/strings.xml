@@ -51,4 +51,10 @@
     <string name="line_dashed">Dashed</string>
     <string name="line_dotted">Dotted</string>
     <string name="birthday_icon">Birthday icon</string>
+    <string name="event_times">Event times</string>
+    <string name="accent_color">Accent colour</string>
+    <string name="calendar_app">Calendar app</string>
+    <string name="opens_on_tap">Opens on tap</string>
+    <string name="system_default">System default</string>
+    <string name="holiday_calendars">Holiday calendars</string>
 </resources>

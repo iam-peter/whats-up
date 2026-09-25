@@ -41,6 +41,8 @@ import app.whatsup.config.WidgetConfig
 import app.whatsup.config.configStore
 import app.whatsup.data.CalendarRepository
 import app.whatsup.update.UpdateScheduler
+import app.whatsup.widget.CalendarApp
+import app.whatsup.widget.Intents
 import app.whatsup.widget.WhatsUpWidget
 import app.whatsup.widget.WidgetState
 import kotlinx.coroutines.Dispatchers
@@ -81,6 +83,7 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
     var cfg by remember { mutableStateOf(WidgetConfig()) }
     var preview by remember { mutableStateOf<WidgetState?>(null) }
     val calendars = remember { CalendarRepository(context).calendars() }
+    val calendarApps = remember { Intents.calendarApps(context) }
     val size = remember { widgetSize(context, appWidgetId) }
 
     LaunchedEffect(Unit) {
@@ -122,11 +125,16 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
 
             SectionTitle(stringResource(R.string.appearance))
             SwitchRow(stringResource(R.string.dynamic_colors), cfg.dynamicColors) { cfg = cfg.copy(dynamicColors = it) }
+            if (!cfg.dynamicColors) {
+                Text(stringResource(R.string.accent_color), Modifier.padding(vertical = 6.dp))
+                ColorChoice(ACCENT_COLORS, cfg.accentColor) { cfg = cfg.copy(accentColor = it) }
+            }
             SwitchRow(stringResource(R.string.tint_weekends), cfg.weekendStyle == WeekendStyle.TINTED) {
                 cfg = cfg.copy(weekendStyle = if (it) WeekendStyle.TINTED else WeekendStyle.NONE)
             }
             SwitchRow(stringResource(R.string.week_numbers), cfg.showWeekNumbers) { cfg = cfg.copy(showWeekNumbers = it) }
             SwitchRow(stringResource(R.string.birthday_icon), cfg.showBirthdayIcon) { cfg = cfg.copy(showBirthdayIcon = it) }
+            SwitchRow(stringResource(R.string.event_times), cfg.showEventTimes) { cfg = cfg.copy(showEventTimes = it) }
 
             if (calendars.isNotEmpty()) {
                 SectionTitle(stringResource(R.string.calendars))
@@ -137,7 +145,14 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
                     CalendarPicker(calendars, ids) { cfg = cfg.copy(calendarIds = it ?: calendars.map { c -> c.id }.toSet()) }
                 }
             }
-            // TODO(M1): calendar app picker (Q-41) via queryIntentActivities on the calendar VIEW intent.
+            SectionTitle(stringResource(R.string.calendar_app))
+            val systemDefault = stringResource(R.string.system_default)
+            val options = listOf<CalendarApp?>(null) + calendarApps
+            StyleDropdown(
+                stringResource(R.string.opens_on_tap), options,
+                calendarApps.firstOrNull { it.packageName == cfg.calendarPackage }, { cfg = cfg.copy(calendarPackage = it?.packageName) },
+                Modifier.fillMaxWidth(), name = { it?.label ?: systemDefault },
+            )
         }
         Button(onClick = {
             scope.launch {

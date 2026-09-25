@@ -8,20 +8,21 @@ fixes its rendering problems and makes the layout more configurable.
 
 - **Rolling day grid:** starts at the beginning of the current week; the
   number of weeks follows the widget height (1–6), down to 170 × 40 dp.
-- **Text that fits:** titles wrap to two lines at word boundaries, are
-  clipped at the chip edge when space runs out, and extra entries collapse
-  into "+N".
+- **Dense, readable entries:** one line each, clipped at the chip edge
+  (no "…"); entries that don't fit collapse into "+N".
+- **Multi-day events** as one bar across the days they cover.
 - **Birthdays:** from Contacts and the Google Birthdays calendar,
   de-duplicated per person, with age and an optional cake icon. Several on
   one day are grouped into "N birthdays".
-- **Timed events** show their start time; past days and events that have
-  already ended are dimmed.
+- **Timed events** show their start time (optional); past days and events
+  that have already ended are dimmed.
 - **Per-calendar styles:** a fill pattern (stripes, dots, grid, zigzag)
   and an outline style (solid, dashed, dotted) for each calendar.
 - **Holiday de-duplication** across holiday calendars in different
-  languages.
+  languages; any calendar can be marked as a holiday calendar.
 - **Configurable per widget** with a live preview: weeks, text size,
-  density, background, weekend tint, week numbers, colours.
+  density, background, weekend tint, week numbers, colours, calendars, and
+  which calendar app opens on a tap.
 - **Private and light:** no internet permission; it updates only when the
   calendar changes, at midnight or when an event ends.
 - German and English, with TalkBack descriptions.
@@ -90,9 +91,8 @@ WHATSUP_KEYSTORE=/path/to/whatsup-release.p12 WHATSUP_KEYSTORE_PASSWORD=... \
 
 ## Open M1 items
 
-- Spike S2: multi-day events as spanning bars (currently repeated per day).
-- Calendar app picker (Q-41).
-- Tuning: the line-height estimate still leaves some vertical space unused.
+- Verify refresh timing (5 s after a calendar change, 1 min after
+  midnight), light mode, TalkBack and large font sizes on the device.
 - Glance screenshot tests at 170 × 40 dp, 4 × 2 and 5 × 4 cells.
 
 ## License

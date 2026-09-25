@@ -26,7 +26,7 @@ class EntryLoader(context: Context) {
         zone: ZoneId = ZoneId.systemDefault(),
     ): List<CalendarEntry> {
         val global = config.global
-        val (calendarBirthdays, events) = calendars.instances(from, to, calendarIds, zone)
+        val (calendarBirthdays, events) = calendars.instances(from, to, calendarIds, zone, global.extraHolidayCalendarIds)
             .partition { it.kind == EntryKind.BIRTHDAY }
         val contactBirthdays = if (global.birthdaysFromContacts) {
             contacts.birthdays().flatMap { b ->

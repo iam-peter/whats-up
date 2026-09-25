@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.3
+Version: v1.4
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -109,8 +109,8 @@ stored as `TypedValue` complex values. For example, `43521` = 0xAA01 =
 
 | ID | Weakness | M1? | Resolution |
 |---|---|---|---|
-| W1 | Titles hard-clipped mid-word | ✅ | FR-L5: wrap to 2 lines at word boundaries, then clip, then "+N" |
-| W2 | Unused vertical space while titles are cut | ✅ | FR-L5: the 2-line wrap uses that space |
+| W1 | Titles hard-clipped mid-word | ✅ | FR-L5: single line, clipped at the chip edge like Chronos but without losing width to padding, then "+N" |
+| W2 | Unused vertical space while titles are cut | ✅ | Compact padding; multi-day bars share one lane across the week (FR-E2) |
 | W3 | Timed events show no time | ✅ | FR-E3: start time in an outlined chip |
 | W4 | Right column clipped by the widget edge | ✅ | FR-T5 |
 | W5 | Inconsistent cell backgrounds across the range | ✅ | FR-T2 |
@@ -128,8 +128,8 @@ stored as `TypedValue` complex values. For example, `43521` = 0xAA01 =
 
 ## 3. Goals
 
-- **G1 — Legible.** Titles wrap at word boundaries and use the available
-  space; when it runs out they are clipped at the chip edge (no "…").
+- **G1 — Legible.** One line per entry, using the full chip width; titles
+  that don't fit are clipped at the chip edge (no "…").
 - **G2 — Space-efficient.** Compact density and no header by default.
 - **G3 — Small.** Every layout works down to 170 × 40 dp.
 - **G4 — Birthdays built in.** They have an icon, a name, and an age.
@@ -185,18 +185,13 @@ combinations the presets offer.
 
 - **FR-L4** Before building the Glance tree, the layout engine measures
   the text for the actual cell size in dp, using `StaticLayout`.
-- **FR-L5** Overflow strategy per cell, in this fixed order (Q-22, revised
-  in v1.2):
-  1. Wrap a title to **at most 2 lines** if the cell height allows it,
-     but only at word boundaries (whitespace, or after "-", "/", "–",
-     "—"). A title whose wrap would break inside a word stays on one line.
-  2. **Clip** the last line at the chip edge. There is no ellipsis: the
-     last line has no break opportunities, so it is cut between characters
-     at the edge instead of losing its last words.
-     Glance's TextViews add "…" whenever a line limit is set, so chip text
-     is limited by an exact height (from the font metrics) instead.
-  3. When entries don't fit vertically, replace the rest with
-     "**+N**".
+- **FR-L5** Overflow strategy per cell (Q-22, revised in v1.2 and v1.4):
+  1. Every entry is **one line**; there is no wrapping.
+  2. A title that doesn't fit is **clipped** at the chip edge, at the exact
+     pixel, with no "…". The text view is laid out wider than the chip so
+     it never wraps or ellipsises, and the chip's bounds cut it. (Glance's
+     TextViews add "…" whenever a line limit is set.)
+  3. When entries don't fit vertically, replace the rest with "**+N**".
 - **FR-L5a** Glance allows at most 10 children per `Row`/`Column`. Each
   cell therefore shows at most **8 chips**, plus its header and "+N".
 - **FR-L6** Narrow-cell fallback (Q-23): reduce the inner padding down to
@@ -224,9 +219,9 @@ combinations the presets offer.
   their normalised titles match, or if both calendars mark the date as a
   public holiday. The entry from the calendar that is first in the user's
   calendar order is kept.
-  - Classification: the calendar ID matches
-    `*#holiday@group.v.calendar.google.com`, or the user flags it manually
-    in settings.
+  - Classification: the calendar's owner matches
+    `*#holiday@group.v.calendar.google.com`, or the user ticks it under
+    "Holiday calendars" on the main screen.
   - Titles in different languages (for example "Day of German Unity" and
     "Tag der Deutschen Einheit") cannot be matched by their titles. For
     these, the rule is **one entry per day per holiday calendar group**,
@@ -261,15 +256,22 @@ combinations the presets offer.
 ### 5.3 Event rendering (E)
 
 - **FR-E1** All-day events are drawn as **filled** chips.
-- **FR-E2** Multi-day events are drawn as a **continuous bar** spanning
-  the days (Q-26):
-  - Bars break at row (week) ends and continue on the next row.
-  - Bars occupy the top slots of each cell, in a consistent slot across
-    the days they cover.
+- **FR-E2** Multi-day all-day events are drawn as a **continuous bar**
+  spanning the days (Q-26):
+  - Each week gets bar lanes above the day entries; bars that don't
+    overlap share a lane, and each lane takes one entry line from every day
+    of that week. Bars start and end inside the cells and run to the edge
+    where the event continues into the previous or next week (square
+    corners there).
+  - If there are more overlapping bars than entry lines, the rest fall back
+    to one chip per day.
+  - Glance only has equal weights, so a week is two layers: the day
+    backgrounds (which take day taps) and above them headers, lanes and
+    entries. Bars and the gaps between them get exact widths.
 - **FR-E3** Timed events are drawn as **outlined** chips in the event
   colour (Q-24).
-  - In the grid they show the start time and the title. In the agenda
-    they show start–end and the title (Q-25).
+  - The start time in front of the title is a per-widget option ("Event
+    times", on by default). The day view shows start–end (Q-25).
   - The time format follows the system 12/24-hour setting.
 - **FR-E4** Colour is the event colour if one is set, otherwise the
   calendar colour (Q-33).
@@ -292,9 +294,10 @@ combinations the presets offer.
 
 ### 5.4 Theming (T)
 
-- **FR-T1** Material You dynamic colours are the default. Custom colours
-  can be selected instead (Q-31a). The widget follows the system light
-  and dark mode (Q-31b).
+- **FR-T1** Material You dynamic colours are the default. With them off,
+  the user picks an accent colour (today border, today's date) from nine
+  presets; surfaces use the standard Material palette (Q-31a). The widget
+  follows the system light and dark mode (Q-31b).
 - **FR-T2** Background (Q-32), as the user chooses:
   - **per-cell backgrounds**, applied uniformly to every cell in the range
     (fixes W5), or
@@ -317,12 +320,12 @@ combinations the presets offer.
 - **FR-I2** Tapping an event opens it in the calendar app, using
   `ACTION_VIEW` on `Events.CONTENT_URI/<id>` with `EXTRA_EVENT_BEGIN_TIME`
   (Q-39).
-- **FR-I3** The calendar app is user-selectable. The default is the system
-  handler (Q-41). If the chosen app does not support date deep links, the
-  widget falls back to launching the app.
+- **FR-I3** The calendar app is user-selectable per widget, from the apps
+  that open calendar dates; the default is the system handler (Q-41). If
+  the chosen app can't open a date or event link, it is launched instead.
 - **FR-I4** Tapping **"+N"** or an **aggregated birthday chip** opens the
   in-app day view for that date. It lists every entry, with birthday
-  names and ages (D-2, D-3).
+  names and ages (D-2, D-3), from that widget's calendar selection.
 
 ### 5.6 Configuration (C)
 
@@ -469,5 +472,6 @@ figures must be validated against primary sources before external use.
 | v1.1 | 24 September 2026 | Henning Gründl | Word-boundary wrapping (FR-L5), birthday icon rule (FR-B6), per-calendar fill patterns and outline styles (FR-E6) — generated with Claude AI |
 | v1.2 | 24 September 2026 | Henning Gründl | Clip instead of ellipsis (FR-L5); monochrome cake icon with an always/never setting (FR-B2, FR-B6) — generated with Claude AI |
 | v1.3 | 25 September 2026 | Henning Gründl | Licence decided: Apache-2.0 (D-1) — generated with Claude AI |
+| v1.4 | 25 September 2026 | Henning Gründl | Single-line entries clipped at the pixel edge (FR-L5); multi-day bars (FR-E2); event-time option (FR-E3); accent colour (FR-T1); holiday calendars marked by hand (FR-D5); calendar app picker (FR-I3); day view uses the widget's calendars (FR-I4) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

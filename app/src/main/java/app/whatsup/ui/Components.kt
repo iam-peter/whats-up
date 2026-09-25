@@ -1,6 +1,7 @@
 package app.whatsup.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -133,14 +134,14 @@ fun CalendarStyleRow(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun <T> StyleDropdown(
+fun <T> StyleDropdown(
     label: String,
     options: List<T>,
     selected: T,
     onSelect: (T) -> Unit,
     modifier: Modifier,
     name: @Composable (T) -> String,
-    swatch: @Composable (T) -> Unit,
+    swatch: (@Composable (T) -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded, { expanded = it }, modifier) {
@@ -150,7 +151,7 @@ private fun <T> StyleDropdown(
             readOnly = true,
             singleLine = true,
             label = { Text(label) },
-            leadingIcon = { swatch(selected) },
+            leadingIcon = swatch?.let { { it(selected) } },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
         )
@@ -158,7 +159,7 @@ private fun <T> StyleDropdown(
             options.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(name(option)) },
-                    leadingIcon = { swatch(option) },
+                    leadingIcon = swatch?.let { { it(option) } },
                     onClick = {
                         onSelect(option)
                         expanded = false
@@ -218,4 +219,25 @@ private fun lineName(style: LineStyle) = when (style) {
     LineStyle.SOLID -> R.string.line_solid
     LineStyle.DASHED -> R.string.line_dashed
     LineStyle.DOTTED -> R.string.line_dotted
+}
+
+/** Accent colours offered when dynamic colours are off (FR-T1). */
+val ACCENT_COLORS = listOf(
+    0xFF3F51B5, 0xFF1E88E5, 0xFF00897B, 0xFF43A047, 0xFFF9A825, 0xFFEF6C00, 0xFFE53935, 0xFF8E24AA, 0xFF757575,
+).map { it.toInt() }
+
+@Composable
+fun ColorChoice(colors: List<Int>, selected: Int, onSelect: (Int) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        colors.forEach { argb ->
+            val isSelected = argb == selected
+            Box(
+                Modifier.size(32.dp)
+                    .clip(CircleShape)
+                    .background(Color(argb))
+                    .border(if (isSelected) 3.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                    .clickable { onSelect(argb) },
+            )
+        }
+    }
 }

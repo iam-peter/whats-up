@@ -58,7 +58,7 @@ class WhatsUpWidget : GlanceAppWidget() {
             val entries = if (hasPermission) {
                 EntryLoader(context).load(days.first(), days.last(), config, config.calendarIdsFor(appWidgetId))
             } else emptyList()
-            return WidgetState(hasPermission, entries, config.widget(appWidgetId), today, Instant.now())
+            return WidgetState(hasPermission, entries, config.widget(appWidgetId), today, Instant.now(), appWidgetId)
         }
     }
 }

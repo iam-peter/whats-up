@@ -50,4 +50,10 @@
     <string name="line_dashed">Gestrichelt</string>
     <string name="line_dotted">Gepunktet</string>
     <string name="birthday_icon">Geburtstagssymbol</string>
+    <string name="event_times">Uhrzeiten</string>
+    <string name="accent_color">Akzentfarbe</string>
+    <string name="calendar_app">Kalender-App</string>
+    <string name="opens_on_tap">Öffnet beim Antippen</string>
+    <string name="system_default">Systemstandard</string>
+    <string name="holiday_calendars">Feiertagskalender</string>
 </resources>

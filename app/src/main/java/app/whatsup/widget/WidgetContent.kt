@@ -1,5 +1,6 @@
 package app.whatsup.widget
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
@@ -45,6 +46,8 @@ import app.whatsup.logic.DayCell
 import app.whatsup.logic.GridMetrics
 import app.whatsup.logic.GridModel
 import app.whatsup.logic.GridModelBuilder
+import app.whatsup.logic.SpanBar
+import app.whatsup.logic.Week
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.ChipPattern
 import app.whatsup.model.LineStyle
@@ -58,6 +61,8 @@ data class WidgetState(
     val config: WidgetConfig,
     val today: LocalDate,
     val now: Instant,
+    /** Passed to the in-app day view, so it shows this widget's calendars. */
+    val appWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID,
 )
 
 fun widgetCornerRadiusDp(context: Context): Float {
@@ -85,89 +90,137 @@ fun WidgetContent(state: WidgetState) {
         cfg = state.config,
         cornerRadiusDp = widgetCornerRadiusDp(context),
     )
-    DayGrid(model, state.config, palette)
+    DayGrid(model, state, palette)
 }
 
 @Composable
-private fun DayGrid(model: GridModel, cfg: WidgetConfig, palette: WidgetPalette) {
+private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette) {
     val m = model.metrics
     var root = GlanceModifier.fillMaxSize()
         .appWidgetBackground()
         .cornerRadius(android.R.dimen.system_app_widget_background_radius)
-    if (cfg.background == BackgroundStyle.SINGLE) root = root.background(palette.background)
+    if (state.config.background == BackgroundStyle.SINGLE) root = root.background(palette.background)
     Column(root.padding(m.outerPaddingDp.dp)) {
-        model.weeks.forEachIndexed { row, week ->
-            Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
-                model.weekNumbers?.let { numbers ->
+        model.weeks.forEach { week ->
+            WeekView(week, model.showWeekNumbers, state, m, palette, GlanceModifier.fillMaxWidth().defaultWeight())
+        }
+    }
+}
+
+/**
+ * A week is two layers (FR-E2): the day backgrounds, which take day taps,
+ * and above them the headers, the bar lanes and the day entries. Bars need
+ * the second layer because they cross the day columns.
+ */
+@Composable
+private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
+    val cfg = state.config
+    val inset = (m.gapDp + m.cellPaddingDp).dp
+    val weekNumberColumn = @Composable {
+        if (showWeekNumbers) Spacer(GlanceModifier.width(m.weekNumberWidthDp.dp))
+    }
+    Box(modifier) {
+        Row(GlanceModifier.fillMaxSize()) {
+            weekNumberColumn()
+            week.days.forEach { DayBackground(it, cfg, m, palette, GlanceModifier.defaultWeight().fillMaxHeight()) }
+        }
+        Column(GlanceModifier.fillMaxSize()) {
+            Row(GlanceModifier.fillMaxWidth().padding(top = inset)) {
+                if (showWeekNumbers) {
                     Text(
-                        numbers[row].toString(),
-                        modifier = GlanceModifier.width(m.weekNumberWidthDp.dp).padding(top = (m.gapDp + m.cellPaddingDp).dp),
+                        week.weekNumber?.toString() ?: "",
+                        modifier = GlanceModifier.width(m.weekNumberWidthDp.dp),
                         style = TextStyle(color = palette.onCellDim, fontSize = (m.textSp * 0.85f).sp, textAlign = TextAlign.Center),
                     )
                 }
-                week.forEach { cell ->
-                    DayCellView(cell, cfg, m, palette, GlanceModifier.defaultWeight().fillMaxHeight())
-                }
+                week.days.forEach { DayHeader(it, m, palette, GlanceModifier.defaultWeight().padding(horizontal = inset)) }
+            }
+            week.lanes.forEach { LaneRow(it, weekNumberColumn, state, m, palette) }
+            Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
+                weekNumberColumn()
+                week.days.forEach { DayEntries(it, state, m, palette, GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = inset)) }
             }
         }
     }
 }
 
 @Composable
-private fun DayCellView(cell: DayCell, cfg: WidgetConfig, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
-    val context = LocalContext.current
-    val textColor = if (cell.isPast) palette.onCellDim else palette.onCell
+private fun DayBackground(cell: DayCell, cfg: WidgetConfig, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
     var body = GlanceModifier.fillMaxSize()
-    if (cfg.background == BackgroundStyle.PER_CELL) {
-        val bg = if (cfg.weekendStyle == WeekendStyle.TINTED && cell.isWeekend) palette.weekendCell else palette.cell
-        body = body.background(bg).cornerRadius(4.dp)
-    } else if (cfg.weekendStyle == WeekendStyle.TINTED && cell.isWeekend) {
-        body = body.background(palette.weekendCell).cornerRadius(4.dp)
+    val tintWeekend = cfg.weekendStyle == WeekendStyle.TINTED && cell.isWeekend
+    if (cfg.background == BackgroundStyle.PER_CELL || tintWeekend) {
+        body = body.background(if (tintWeekend) palette.weekendCell else palette.cell).cornerRadius(4.dp)
     }
     body = body
-        .clickable(actionStartActivity(Intents.calendarDay(cell.date, cfg.calendarPackage)))
+        .clickable(actionStartActivity(Intents.calendarDay(LocalContext.current, cell.date, cfg.calendarPackage)))
         .semantics { contentDescription = cell.description }
-
     Box(modifier.padding(m.gapDp.dp)) {
         Box(body) {
-            var content = GlanceModifier.fillMaxSize().padding(m.cellPaddingDp.dp)
             if (cell.isToday) {
                 // Spec Q-35: today is marked with a cell border.
-                content = content.background(ImageProvider(R.drawable.today_outline), colorFilter = ColorFilter.tint(palette.accent))
-            }
-            Column(content) {
-                Row(GlanceModifier.fillMaxWidth().height(m.headerHeightDp.dp), verticalAlignment = Alignment.CenterVertically) {
-                    cell.weekdayLabel?.let {
-                        Text(it, style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Medium))
-                    }
-                    Spacer(GlanceModifier.defaultWeight())
-                    Text(
-                        cell.date.dayOfMonth.toString(),
-                        style = TextStyle(
-                            color = if (cell.isToday) palette.accent else textColor,
-                            fontSize = m.textSp.sp,
-                            fontWeight = FontWeight.Bold,
-                        ),
-                    )
-                }
-                cell.chips.forEach { ChipView(it, cfg, m, palette) }
-                cell.moreText?.let {
-                    Text(
-                        it,
-                        maxLines = 1,
-                        modifier = GlanceModifier.fillMaxWidth()
-                            .padding(horizontal = m.chipHPaddingDp.dp)
-                            .clickable(actionStartActivity(Intents.forTarget(context, ChipTarget.InAppDay(cell.date), cfg.calendarPackage))),
-                        style = TextStyle(color = palette.onCellDim, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
-                    )
-                }
+                Box(GlanceModifier.fillMaxSize().background(ImageProvider(R.drawable.today_outline), colorFilter = ColorFilter.tint(palette.accent))) {}
             }
         }
     }
 }
 
 @Composable
-private fun ChipView(chip: Chip, cfg: WidgetConfig, m: GridMetrics, palette: WidgetPalette) {
+private fun DayHeader(cell: DayCell, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
+    val textColor = if (cell.isPast) palette.onCellDim else palette.onCell
+    Row(modifier.height(m.headerHeightDp.dp), verticalAlignment = Alignment.CenterVertically) {
+        cell.weekdayLabel?.let {
+            Text(it, style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Medium))
+        }
+        Spacer(GlanceModifier.defaultWeight())
+        Text(
+            cell.date.dayOfMonth.toString(),
+            style = TextStyle(color = if (cell.isToday) palette.accent else textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
+        )
+    }
+}
+
+/** One lane of bars; bars and the gaps between them get exact widths (Glance weights are all equal). */
+@Composable
+private fun LaneRow(bars: List<SpanBar>, weekNumberColumn: @Composable () -> Unit, state: WidgetState, m: GridMetrics, palette: WidgetPalette) {
+    val inset = m.gapDp + m.cellPaddingDp
+    Row(GlanceModifier.fillMaxWidth().height(m.lineHeightDp.dp)) {
+        weekNumberColumn()
+        var column = 0
+        // Multi-day bars span at least two columns unless cut at a week edge, so a
+        // lane holds at most four: with their gaps, within Glance's 10 children.
+        bars.take(4).forEach { bar ->
+            if (bar.startColumn > column) Spacer(GlanceModifier.width(((bar.startColumn - column) * m.cellWidthDp).dp))
+            // A bar that continues into the next or previous week runs to the edge.
+            val start = if (bar.continuesBefore) 0f else inset
+            val end = if (bar.continuesAfter) 0f else inset
+            Box(GlanceModifier.width((bar.span * m.cellWidthDp).dp).padding(start = start.dp, end = end.dp)) {
+                ChipView(bar.chip, state, m, palette, rounded = !bar.continuesBefore && !bar.continuesAfter)
+            }
+            column = bar.startColumn + bar.span
+        }
+    }
+}
+
+@Composable
+private fun DayEntries(cell: DayCell, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
+    val context = LocalContext.current
+    Column(modifier) {
+        cell.chips.forEach { ChipView(it, state, m, palette) }
+        cell.moreText?.let {
+            Text(
+                it,
+                modifier = GlanceModifier.fillMaxWidth()
+                    .height(m.lineHeightDp.dp)
+                    .padding(horizontal = m.chipHPaddingDp.dp)
+                    .clickable(actionStartActivity(Intents.forTarget(context, ChipTarget.InAppDay(cell.date), state.config.calendarPackage, state.appWidgetId))),
+                style = TextStyle(color = palette.onCellDim, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChipView(chip: Chip, state: WidgetState, m: GridMetrics, palette: WidgetPalette, rounded: Boolean = true) {
     val context = LocalContext.current
     // Glance has no border or pattern modifiers, so both are tinted drawables (FR-E6).
     val fillPattern = patternDrawable(chip.pattern, chip.dimmed)
@@ -185,24 +238,27 @@ private fun ChipView(chip: Chip, cfg: WidgetConfig, m: GridMetrics, palette: Wid
     }
     val chipModifier = GlanceModifier.fillMaxWidth()
         .then(background)
-        .cornerRadius(3.dp)
+        .cornerRadius(if (rounded) 3.dp else 0.dp)
         .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
-        .clickable(actionStartActivity(Intents.forTarget(context, chip.target, cfg.calendarPackage)))
+        .clickable(actionStartActivity(Intents.forTarget(context, chip.target, state.config.calendarPackage, state.appWidgetId)))
         .semantics { contentDescription = chip.description }
-    // No ellipsis (FR-L5): Glance's TextViews ellipsise whenever maxLines is set,
-    // so the text is limited by an exact height instead and the view clips it.
+    // No ellipsis (FR-L5). The text view is laid out wider than the chip, so its
+    // single line never wraps or ellipsises; the chip's bounds cut it at the
+    // exact pixel edge. (Glance's TextViews add "…" whenever maxLines is set.)
     val textHeight = chip.textHeightDp.dp
     val text = @Composable { modifier: GlanceModifier ->
-        Text(
-            chip.text,
-            modifier = modifier,
-            style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
-        )
+        Box(modifier) {
+            Text(
+                chip.text,
+                modifier = GlanceModifier.width(CLIPPED_TEXT_WIDTH).height(textHeight),
+                style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
+            )
+        }
     }
     // The outer Box keeps chip + spacing as one child (Glance allows 10 per Column).
     Box(GlanceModifier.fillMaxWidth().padding(bottom = 1.dp)) {
         if (chip.icon) {
-            Row(chipModifier, verticalAlignment = if (chip.maxLines > 1) Alignment.Top else Alignment.CenterVertically) {
+            Row(chipModifier, verticalAlignment = Alignment.CenterVertically) {
                 // Monochrome cake, tinted like the text (FR-B2).
                 Image(
                     ImageProvider(R.drawable.ic_cake),
@@ -218,6 +274,9 @@ private fun ChipView(chip: Chip, cfg: WidgetConfig, m: GridMetrics, palette: Wid
         }
     }
 }
+
+/** Wider than any chip; see [ChipView]. */
+private val CLIPPED_TEXT_WIDTH = 1000.dp
 
 @DrawableRes
 fun outlineDrawable(style: LineStyle, dimmed: Boolean): Int = when (style) {

@@ -14,6 +14,8 @@ data class GlobalConfig(
     val calendarIds: Set<Long>? = null,
     /** null = holiday calendar with the lowest ID (spec D-4). */
     val preferredHolidayCalendarId: Long? = null,
+    /** Calendars the user marked as holiday calendars, besides Google's (FR-D5). */
+    val extraHolidayCalendarIds: Set<Long> = emptySet(),
     val birthdaysFromContacts: Boolean = true,
     val birthdaysFromCalendar: Boolean = true,
     /** Fill per calendar ID; calendars without an entry are solid. */
@@ -39,6 +41,10 @@ data class WidgetConfig(
     /** Cake icon on birthday chips: always or never (FR-B6). */
     val showBirthdayIcon: Boolean = true,
     val dynamicColors: Boolean = true,
+    /** Accent (today border, day number) when [dynamicColors] is off; ARGB. */
+    val accentColor: Int = 0xFF3F51B5.toInt(),
+    /** Start time in front of timed events (FR-E3). */
+    val showEventTimes: Boolean = true,
     /** null = system default handler for calendar intents. */
     val calendarPackage: String? = null,
 )

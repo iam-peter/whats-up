@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -71,7 +72,9 @@ private fun MainScreen() {
     }
     val hasCalendar = remember(permissionEpoch) { Permissions.hasCalendar(context) }
     val hasContacts = remember(permissionEpoch) { Permissions.hasContacts(context) }
-    val calendars = remember(permissionEpoch) { CalendarRepository(context).calendars() }
+    val calendars = remember(permissionEpoch, config.global.extraHolidayCalendarIds) {
+        CalendarRepository(context).calendars(config.global.extraHolidayCalendarIds)
+    }
 
     fun update(block: (GlobalConfig) -> GlobalConfig) = scope.launch {
         context.configStore.updateData { it.copy(global = block(it.global)) }
@@ -106,6 +109,26 @@ private fun MainScreen() {
         }
         SwitchRow(stringResource(R.string.birthdays_from_calendar), config.global.birthdaysFromCalendar) { on ->
             update { it.copy(birthdaysFromCalendar = on) }
+        }
+
+        // FR-D5: Google holiday calendars are recognised; others can be marked by hand.
+        val markable = calendars.filter { !it.isBirthdays }
+        if (markable.isNotEmpty()) {
+            SectionTitle(stringResource(R.string.holiday_calendars))
+            markable.forEach { cal ->
+                Row(
+                    Modifier.fillMaxWidth().clickable(enabled = !cal.autoHoliday) {
+                        update {
+                            val ids = it.extraHolidayCalendarIds
+                            it.copy(extraHolidayCalendarIds = if (cal.id in ids) ids - cal.id else ids + cal.id)
+                        }
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(cal.isHoliday, onCheckedChange = null, enabled = !cal.autoHoliday, modifier = Modifier.padding(8.dp))
+                    Text(cal.name)
+                }
+            }
         }
 
         val holidayCalendars = calendars.filter { it.isHoliday }

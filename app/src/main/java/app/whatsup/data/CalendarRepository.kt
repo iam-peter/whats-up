@@ -20,6 +20,8 @@ data class CalendarInfo(
     val color: Int,
     val isHoliday: Boolean,
     val isBirthdays: Boolean,
+    /** Recognised as a Google holiday calendar, independent of the settings. */
+    val autoHoliday: Boolean = isHoliday,
 )
 
 class CalendarRepository(private val context: Context) {
@@ -31,7 +33,8 @@ class CalendarRepository(private val context: Context) {
         fun isBirthdays(owner: String?) = owner == BIRTHDAY_CALENDAR
     }
 
-    fun calendars(): List<CalendarInfo> {
+    /** [extraHolidayIds]: calendars the user marked as holiday calendars (FR-D5). */
+    fun calendars(extraHolidayIds: Set<Long> = emptySet()): List<CalendarInfo> {
         if (!Permissions.hasCalendar(context)) return emptyList()
         val projection = arrayOf(
             Calendars._ID, Calendars.CALENDAR_DISPLAY_NAME, Calendars.ACCOUNT_NAME,
@@ -44,8 +47,9 @@ class CalendarRepository(private val context: Context) {
             buildList {
                 while (c.moveToNext()) {
                     val owner = c.getString(4)
-                    add(CalendarInfo(c.getLong(0), c.getString(1) ?: "", c.getString(2) ?: "", c.getInt(3),
-                        isHoliday(owner), isBirthdays(owner)))
+                    val id = c.getLong(0)
+                    add(CalendarInfo(id, c.getString(1) ?: "", c.getString(2) ?: "", c.getInt(3),
+                        isHoliday(owner) || id in extraHolidayIds, isBirthdays(owner), autoHoliday = isHoliday(owner)))
                 }
             }
         }.orEmpty()
@@ -56,7 +60,13 @@ class CalendarRepository(private val context: Context) {
      * cancelled events (FR-D1, FR-D4). Entries of the Google birthday
      * calendar come back as [EntryKind.BIRTHDAY].
      */
-    fun instances(from: LocalDate, to: LocalDate, calendarIds: Set<Long>?, zone: ZoneId): List<CalendarEntry> {
+    fun instances(
+        from: LocalDate,
+        to: LocalDate,
+        calendarIds: Set<Long>?,
+        zone: ZoneId,
+        extraHolidayIds: Set<Long> = emptySet(),
+    ): List<CalendarEntry> {
         if (!Permissions.hasCalendar(context)) return emptyList()
         // All-day instances are stored in UTC; widen the window by a day on each side.
         val begin = from.minusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
@@ -108,7 +118,7 @@ class CalendarRepository(private val context: Context) {
                             end = if (allDay) null else Instant.ofEpochMilli(endMs),
                             eventId = c.getLong(0),
                             calendarId = c.getLong(6),
-                            isHoliday = isHoliday(owner),
+                            isHoliday = isHoliday(owner) || c.getLong(6) in extraHolidayIds,
                         )
                     )
                 }

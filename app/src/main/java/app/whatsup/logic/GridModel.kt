@@ -16,11 +16,10 @@ sealed interface ChipTarget {
 }
 
 data class Chip(
-    /** Laid out for display: may contain line breaks and no-break spaces. */
+    /** Laid out for display: spaces are no-break, so the line is clipped at the edge. */
     val text: String,
     /** The plain text, for accessibility. */
     val description: String,
-    val maxLines: Int,
     val color: Int,
     val style: ChipStyle,
     val dimmed: Boolean,
@@ -28,8 +27,8 @@ data class Chip(
     val pattern: ChipPattern = ChipPattern.NONE,
     val lineStyle: LineStyle = LineStyle.SOLID,
     /**
-     * Exact height of the text: the view is limited by height, not by a
-     * line count, because a line limit makes Android add "…".
+     * Exact height of the single text line: the view is limited by height,
+     * not by maxLines, because a line limit makes Android add "…".
      */
     val textHeightDp: Float = 0f,
     /** Show the cake icon beside the text (birthdays, if enabled). */
@@ -48,9 +47,28 @@ data class DayCell(
     val description: String,
 )
 
+/** A multi-day event drawn as one bar across the days it covers in a week (FR-E2). */
+data class SpanBar(
+    /** Day column (0–6) where the bar starts in this week. */
+    val startColumn: Int,
+    val span: Int,
+    val chip: Chip,
+    /** The event started before this week or ends after it: square that end. */
+    val continuesBefore: Boolean,
+    val continuesAfter: Boolean,
+)
+
+data class Week(
+    val days: List<DayCell>,
+    /** Bar lanes above the day entries; each lane holds non-overlapping bars. */
+    val lanes: List<List<SpanBar>>,
+    /** ISO week number, or null when hidden. */
+    val weekNumber: Int?,
+)
+
 data class GridMetrics(
     val textSp: Float,
-    /** One fitter line: a single-line chip including padding and spacing. */
+    /** One entry line: a chip including padding and spacing. */
     val lineHeightDp: Float,
     val headerHeightDp: Float,
     val cellPaddingDp: Float,
@@ -61,11 +79,12 @@ data class GridMetrics(
     val weekNumberWidthDp: Float,
     val iconSizeDp: Float,
     val iconGapDp: Float,
+    /** Width of one day column; bars are sized in multiples of it. */
+    val cellWidthDp: Float = 0f,
 )
 
 data class GridModel(
-    val weeks: List<List<DayCell>>,
-    /** ISO week numbers per row, or null when hidden. */
-    val weekNumbers: List<Int>?,
+    val weeks: List<Week>,
     val metrics: GridMetrics,
+    val showWeekNumbers: Boolean,
 )
