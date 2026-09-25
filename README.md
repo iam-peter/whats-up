@@ -76,3 +76,9 @@ get `versionCode` 1000 + run number; a local build installed over one needs
 - Calendar app picker (Q-41).
 - Tuning: the line-height estimate still leaves some vertical space unused.
 - Glance screenshot tests at 170 × 40 dp, 4 × 2 and 5 × 4 cells.
+
+## License
+
+Copyright 2026 Henning Gründl. Licensed under the
+[Apache License, Version 2.0](LICENSE); see [NOTICE](NOTICE) for
+attributions.

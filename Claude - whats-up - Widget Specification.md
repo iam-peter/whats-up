@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.2
+Version: v1.3
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -410,7 +410,7 @@ combinations the presets offer.
    `NextUp`, plus the in-app day/agenda view.
 3. **M3 — Timelines and combinations.** `WeekColumns`, `DayTimeline`,
    and combined presets.
-4. **M4 — Release.** Choose the licence (D-1), then publish on GitHub and F-Droid.
+4. **M4 — Release.** Publish on GitHub and F-Droid under Apache-2.0 (D-1).
 
 ### Acceptance criteria for M1 (on the Pixel 9 Pro, next to Chronos at the same size)
 
@@ -434,7 +434,7 @@ resolved as proposed on 24 September 2026.
 
 | ID | Conflict | Decision |
 |---|---|---|
-| **D-1** | Q-02 (open source on GitHub/F-Droid) vs Q-50 (private / no licence) | Develop privately until M1. Choose Apache-2.0 or GPL-3.0 before the first public release (M4) |
+| **D-1** | Q-02 (open source on GitHub/F-Droid) vs Q-50 (private / no licence) | Develop privately until M1. Licence: **Apache-2.0**, copyright Henning Gründl (chosen 25 September 2026) |
 | **D-2** | Q-03 (in-app day view opened from the widget) vs Q-38/Q-39 (taps open the calendar app) | "+N" and aggregated birthday chips open the in-app day view. All other taps follow Q-38/Q-39 |
 | **D-3** | Q-11 (always aggregate birthdays) vs fixing W6 | Aggregate 2 or more birthdays; a single birthday shows name and age. Names appear in the in-app day view and in TalkBack |
 | **D-4** | Q-13: holidays in two languages can't be matched by title | Preferred holiday calendar; other holiday calendars are hidden on days where the preferred one has an entry |
@@ -468,5 +468,6 @@ figures must be validated against primary sources before external use.
 | v1.0 | 24 September 2026 | Henning Gründl | Clarifications resolved as proposed (D-1…D-6); technical approach aligned with the project skeleton (SizeMode.Exact, WorkManager content triggers, JSON DataStore, 8-chip cell limit) — generated with Claude AI |
 | v1.1 | 24 September 2026 | Henning Gründl | Word-boundary wrapping (FR-L5), birthday icon rule (FR-B6), per-calendar fill patterns and outline styles (FR-E6) — generated with Claude AI |
 | v1.2 | 24 September 2026 | Henning Gründl | Clip instead of ellipsis (FR-L5); monochrome cake icon with an always/never setting (FR-B2, FR-B6) — generated with Claude AI |
+| v1.3 | 25 September 2026 | Henning Gründl | Licence decided: Apache-2.0 (D-1) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>
