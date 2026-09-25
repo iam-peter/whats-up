@@ -59,6 +59,5 @@
     <string name="today_title">Heute</string>
     <string name="tomorrow">Morgen</string>
     <string name="yesterday">Gestern</string>
-    <string name="open_calendar">Kalender öffnen</string>
     <string name="no_entries">Keine Einträge</string>
 </resources>

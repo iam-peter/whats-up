@@ -60,6 +60,5 @@
     <string name="today_title">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>
-    <string name="open_calendar">Open calendar</string>
     <string name="no_entries">No entries</string>
 </resources>

@@ -323,10 +323,11 @@ combinations the presets offer.
   Chronos month widget's popup:
   - it lists every entry of the day, with birthday names and ages (D-3),
     times as start–end (Q-25) and date ranges for multi-day events;
-  - **swiping left or right** moves to the next or previous day;
+  - **swiping left or right** moves to the next or previous day; each day
+    is its own card, sized to its content, so swiping never resizes a
+    shared container;
   - tapping an entry opens it in the calendar app (`ACTION_VIEW` on
-    `Events.CONTENT_URI/<id>` with `EXTRA_EVENT_BEGIN_TIME`), and "Open
-    calendar" opens the calendar app at that date;
+    `Events.CONTENT_URI/<id>` with `EXTRA_EVENT_BEGIN_TIME`);
   - tapping outside the card or pressing Back closes it;
   - it uses the calendar selection of the widget it was opened from.
 - **FR-I3** The calendar app is user-selectable per widget, from the apps

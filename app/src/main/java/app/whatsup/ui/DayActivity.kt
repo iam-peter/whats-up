@@ -27,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -88,33 +87,26 @@ private fun DayPopup(start: LocalDate, appWidgetId: Int, onDismiss: () -> Unit) 
     val pager = rememberPagerState(initialPage = PAGE_RANGE) { 2 * PAGE_RANGE + 1 }
     val noRipple = remember { MutableInteractionSource() }
 
-    // Tapping the dimmed area around the card closes the popup.
+    // Tapping the dimmed area around a card closes the popup.
     Box(
         Modifier.fillMaxSize()
             .background(Color.Black.copy(alpha = 0.4f))
             .clickable(noRipple, indication = null, onClick = onDismiss)
-            .safeDrawingPadding()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center,
+            .safeDrawingPadding(),
     ) {
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-            tonalElevation = 6.dp,
-            modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth()
-                .heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.7f).dp)
-                // Taps on the card must not reach the scrim.
-                .clickable(noRipple, indication = null) {},
-        ) {
-            val cfg = config ?: return@Surface
-            HorizontalPager(pager) { page ->
-                DayPage(start.plusDays((page - PAGE_RANGE).toLong()), appWidgetId, cfg, onDismiss)
+        val cfg = config ?: return@Box
+        // Each day is its own card, sized to its content, so swiping doesn't
+        // resize a shared container and shift the entries around.
+        HorizontalPager(pager, Modifier.fillMaxSize(), pageSpacing = 16.dp) { page ->
+            Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                DayCard(start.plusDays((page - PAGE_RANGE).toLong()), appWidgetId, cfg, noRipple, onDismiss)
             }
         }
     }
 }
 
 @Composable
-private fun DayPage(date: LocalDate, appWidgetId: Int, config: AppConfig, onDismiss: () -> Unit) {
+private fun DayCard(date: LocalDate, appWidgetId: Int, config: AppConfig, noRipple: MutableInteractionSource, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val labels = remember { AndroidLabels(context) }
     val calendarPackage = config.widget(appWidgetId).calendarPackage
@@ -125,35 +117,36 @@ private fun DayPage(date: LocalDate, appWidgetId: Int, config: AppConfig, onDism
         }
     }
     val today = LocalDate.now()
-    Column(Modifier.fillMaxWidth().padding(20.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date), style = MaterialTheme.typography.titleLarge)
-                val relative = when (date) {
-                    today -> stringResource(R.string.today_title)
-                    today.plusDays(1) -> stringResource(R.string.tomorrow)
-                    today.minusDays(1) -> stringResource(R.string.yesterday)
-                    else -> null
-                }
-                relative?.let {
-                    Text(it, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                }
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        tonalElevation = 6.dp,
+        modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth()
+            .heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.7f).dp)
+            // Taps on the card must not reach the scrim.
+            .clickable(noRipple, indication = null) {},
+    ) {
+        Column(Modifier.fillMaxWidth().padding(20.dp)) {
+            Text(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date), style = MaterialTheme.typography.titleLarge)
+            val relative = when (date) {
+                today -> stringResource(R.string.today_title)
+                today.plusDays(1) -> stringResource(R.string.tomorrow)
+                today.minusDays(1) -> stringResource(R.string.yesterday)
+                else -> null
             }
-            TextButton(onClick = {
-                context.startActivity(Intents.calendarDay(context, date, calendarPackage))
-                onDismiss()
-            }) { Text(stringResource(R.string.open_calendar)) }
-        }
-        val list = entries
-        when {
-            list == null -> Unit
-            list.isEmpty() -> Text(
-                stringResource(R.string.no_entries),
-                Modifier.padding(vertical = 24.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            else -> LazyColumn(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(list) { e -> EntryRow(e, labels, calendarPackage, onDismiss) }
+            relative?.let {
+                Text(it, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            }
+            val list = entries
+            when {
+                list == null -> Unit
+                list.isEmpty() -> Text(
+                    stringResource(R.string.no_entries),
+                    Modifier.padding(vertical = 24.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                else -> LazyColumn(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items(list) { e -> EntryRow(e, labels, calendarPackage, onDismiss) }
+                }
             }
         }
     }
