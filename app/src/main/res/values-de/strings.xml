@@ -56,4 +56,9 @@
     <string name="opens_on_tap">Öffnet beim Antippen</string>
     <string name="system_default">Systemstandard</string>
     <string name="holiday_calendars">Feiertagskalender</string>
+    <string name="today_title">Heute</string>
+    <string name="tomorrow">Morgen</string>
+    <string name="yesterday">Gestern</string>
+    <string name="open_calendar">Kalender öffnen</string>
+    <string name="no_entries">Keine Einträge</string>
 </resources>

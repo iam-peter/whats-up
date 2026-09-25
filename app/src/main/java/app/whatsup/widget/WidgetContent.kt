@@ -122,7 +122,7 @@ private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m
     Box(modifier) {
         Row(GlanceModifier.fillMaxSize()) {
             weekNumberColumn()
-            week.days.forEach { DayBackground(it, cfg, m, palette, GlanceModifier.defaultWeight().fillMaxHeight()) }
+            week.days.forEach { DayBackground(it, state, m, palette, GlanceModifier.defaultWeight().fillMaxHeight()) }
         }
         Column(GlanceModifier.fillMaxSize()) {
             Row(GlanceModifier.fillMaxWidth().padding(top = inset + m.headerInsetDp.dp)) {
@@ -145,15 +145,16 @@ private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m
 }
 
 @Composable
-private fun DayBackground(cell: DayCell, cfg: WidgetConfig, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
+private fun DayBackground(cell: DayCell, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
+    val cfg = state.config
     var body = GlanceModifier.fillMaxSize()
+        .clickable(actionStartActivity(Intents.inAppDay(LocalContext.current, cell.date, state.appWidgetId)))
     val tintWeekend = cfg.weekendStyle == WeekendStyle.TINTED && cell.isWeekend
     // Days of the next month have no cell background, as in the Chronos month widget.
     if ((cfg.background == BackgroundStyle.PER_CELL && !cell.isNextMonth) || tintWeekend) {
         body = body.background(if (tintWeekend) palette.weekendCell else palette.cell).cornerRadius(4.dp)
     }
     body = body
-        .clickable(actionStartActivity(Intents.calendarDay(LocalContext.current, cell.date, cfg.calendarPackage)))
         .semantics { contentDescription = cell.description }
     Box(modifier.padding(m.gapDp.dp)) {
         Box(body) {

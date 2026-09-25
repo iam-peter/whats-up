@@ -160,4 +160,9 @@ class GridModelBuilderTest {
         assertFalse(model.day(1, 2).isNextMonth) // 30 September
         assertTrue(model.day(1, 3).isNextMonth)  // 1 October
     }
+
+    @Test fun `every chip opens the day popup`() {
+        val chips = build(listOf(timed("Standup", 9), allDay("Trash", today))).day(0, 3).chips
+        assertTrue(chips.all { it.target == ChipTarget.InAppDay(today) })
+    }
 }

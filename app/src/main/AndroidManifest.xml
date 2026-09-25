@@ -42,7 +42,8 @@
             android:name=".ui.DayActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:taskAffinity="" />
+            android:taskAffinity=""
+            android:theme="@style/Theme.WhatsUp.Popup" />
 
         <receiver
             android:name=".widget.WhatsUpWidgetReceiver"

@@ -202,7 +202,8 @@ class GridModelBuilder(
             dimmed = day.isBefore(today) || e.hasEnded(day, today, now),
             pattern = e.pattern,
             lineStyle = e.lineStyle,
-            target = e.eventId?.let { ChipTarget.Event(it, e.start, e.end) } ?: ChipTarget.CalendarDay(day),
+            // Every tap on the widget opens the day popup (spec D-2, revised in v1.6).
+            target = ChipTarget.InAppDay(day),
             textHeightDp = measurer.textHeightDp(m.textSp),
         )
     }

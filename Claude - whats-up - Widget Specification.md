@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.5
+Version: v1.6
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -316,17 +316,22 @@ combinations the presets offer.
 
 ### 5.5 Interaction (I)
 
-- **FR-I1** Tapping the empty area of a day opens the calendar app at that
-  date (Q-38).
-- **FR-I2** Tapping an event opens it in the calendar app, using
-  `ACTION_VIEW` on `Events.CONTENT_URI/<id>` with `EXTRA_EVENT_BEGIN_TIME`
-  (Q-39).
+- **FR-I1** Every tap on the widget (a day, an entry, a bar or "+N") opens
+  the **day popup** for that day (v1.6; replaces Q-38/Q-39, which sent taps
+  to the calendar app).
+- **FR-I2** The day popup is a card over the dimmed home screen, like the
+  Chronos month widget's popup:
+  - it lists every entry of the day, with birthday names and ages (D-3),
+    times as start–end (Q-25) and date ranges for multi-day events;
+  - **swiping left or right** moves to the next or previous day;
+  - tapping an entry opens it in the calendar app (`ACTION_VIEW` on
+    `Events.CONTENT_URI/<id>` with `EXTRA_EVENT_BEGIN_TIME`), and "Open
+    calendar" opens the calendar app at that date;
+  - tapping outside the card or pressing Back closes it;
+  - it uses the calendar selection of the widget it was opened from.
 - **FR-I3** The calendar app is user-selectable per widget, from the apps
   that open calendar dates; the default is the system handler (Q-41). If
   the chosen app can't open a date or event link, it is launched instead.
-- **FR-I4** Tapping **"+N"** or an **aggregated birthday chip** opens the
-  in-app day view for that date. It lists every entry, with birthday
-  names and ages (D-2, D-3), from that widget's calendar selection.
 
 ### 5.6 Configuration (C)
 
@@ -439,7 +444,7 @@ resolved as proposed on 24 September 2026.
 | ID | Conflict | Decision |
 |---|---|---|
 | **D-1** | Q-02 (open source on GitHub/F-Droid) vs Q-50 (private / no licence) | Develop privately until M1. Licence: **Apache-2.0**, copyright Henning Gründl (chosen 25 September 2026) |
-| **D-2** | Q-03 (in-app day view opened from the widget) vs Q-38/Q-39 (taps open the calendar app) | "+N" and aggregated birthday chips open the in-app day view. All other taps follow Q-38/Q-39 |
+| **D-2** | Q-03 (in-app day view opened from the widget) vs Q-38/Q-39 (taps open the calendar app) | "+N" and aggregated birthday chips open the in-app day view. Revised in v1.6: every tap opens the day popup (FR-I1) |
 | **D-3** | Q-11 (always aggregate birthdays) vs fixing W6 | Aggregate 2 or more birthdays; a single birthday shows name and age. Names appear in the in-app day view and in TalkBack |
 | **D-4** | Q-13: holidays in two languages can't be matched by title | Preferred holiday calendar; other holiday calendars are hidden on days where the preferred one has an entry |
 | **D-5** | Q-43 (network only for ICS) vs Q-08 (no ICS) | No INTERNET permission |
@@ -475,5 +480,6 @@ figures must be validated against primary sources before external use.
 | v1.3 | 25 September 2026 | Henning Gründl | Licence decided: Apache-2.0 (D-1) — generated with Claude AI |
 | v1.4 | 25 September 2026 | Henning Gründl | Single-line entries clipped at the pixel edge (FR-L5); multi-day bars (FR-E2); event-time option (FR-E3); accent colour (FR-T1); holiday calendars marked by hand (FR-D5); calendar app picker (FR-I3); day view uses the widget's calendars (FR-I4) — generated with Claude AI |
 | v1.5 | 25 September 2026 | Henning Gründl | Next-month days without cell background, thinner today border with inset header (FR-T2, FR-T4) — generated with Claude AI |
+| v1.6 | 25 September 2026 | Henning Gründl | Every widget tap opens a swipeable day popup (FR-I1, FR-I2, D-2) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>
