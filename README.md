@@ -47,6 +47,18 @@ export JAVA_HOME=/opt/android-studio/jbr
 ~/Android/Sdk/platform-tools/adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
+### Install on the phone without CI
+
+With the phone connected over USB and the release key in
+`~/.local/share/whats-up-signing/`:
+
+```bash
+./scripts/install-local.sh
+```
+
+It builds the signed release and installs it over the nightly, reusing the
+installed version code so later nightlies still update over it.
+
 ## Nightly builds
 
 `.github/workflows/nightly.yml` runs daily at 02:00 UTC and builds only if
