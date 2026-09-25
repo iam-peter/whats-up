@@ -12,8 +12,20 @@ android {
         applicationId = "app.whatsup"
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        // CI passes -PversionCode/-PversionName so nightly builds install over each other.
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
+        versionName = (project.findProperty("versionName") as String?) ?: "0.1.0"
+    }
+
+    signingConfigs {
+        // Shared debug key (committed, not secret), so local and CI builds can
+        // update each other on the phone.
+        getByName("debug") {
+            storeFile = file("whatsup-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

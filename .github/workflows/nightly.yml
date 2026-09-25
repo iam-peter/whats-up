@@ -1,0 +1,75 @@
+name: Nightly build
+
+# Once a day, and only if main has new commits since the last nightly.
+# "Run workflow" in the Actions tab builds on demand.
+on:
+  schedule:
+    - cron: "0 2 * * *" # 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+    steps:
+      - name: Compare with the last nightly
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          last=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/nightly" --jq .object.sha 2>/dev/null || true)
+          echo "Last nightly: ${last:-none}, main: $GITHUB_SHA"
+          if [ "$last" = "$GITHUB_SHA" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Test and build
+        run: |
+          version="0.1.0-nightly.$(date -u +%Y%m%d)+${GITHUB_SHA::7}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          # Offset keeps CI builds above local builds (versionCode 1).
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug \
+            -PversionCode=$((1000 + GITHUB_RUN_NUMBER)) -PversionName="$version"
+          cp app/build/outputs/apk/debug/app-debug.apk whats-up-nightly.apk
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: whats-up-${{ env.VERSION }}
+          path: whats-up-nightly.apk
+
+      - name: Publish the nightly release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete nightly --cleanup-tag --yes 2>/dev/null || true
+          gh release create nightly whats-up-nightly.apk \
+            --target "$GITHUB_SHA" --prerelease --title "Nightly $VERSION" \
+            --notes "Debug build of ${GITHUB_SHA::7} ($(date -u '+%Y-%m-%d %H:%M UTC')). Install whats-up-nightly.apk on the phone."

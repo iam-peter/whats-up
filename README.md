@@ -15,6 +15,19 @@ export JAVA_HOME=/opt/android-studio/jbr
 ~/Android/Sdk/platform-tools/adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
+## Nightly builds
+
+`.github/workflows/nightly.yml` runs daily at 02:00 UTC and builds only if
+`main` has changed since the last nightly. **Actions → Nightly build → Run
+workflow** builds on demand. The APK is published as the `nightly`
+pre-release (**Releases → Nightly → whats-up-nightly.apk**) and as a
+workflow artifact.
+
+Local and CI builds are signed with the same committed debug key
+(`app/whatsup-debug.keystore`), so they install over each other. CI builds
+get `versionCode` 1000 + run number; a local build installed over one needs
+`adb install -r -d`.
+
 ## Layout
 
 | Package | Content |
