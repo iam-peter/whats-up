@@ -119,13 +119,19 @@ fun CalendarStyleRow(
     onFill: (ChipPattern) -> Unit,
     line: LineStyle?,
     onLine: (LineStyle) -> Unit = {},
-    /** Set for calendars: the source colour and a callback (null = reset to it). */
+    /** The source colour and a callback (null = reset to it). */
     sourceColor: Int? = null,
     onColor: ((Int?) -> Unit)? = null,
+    /** Colours offered in the picker; Google Calendar's calendar colours by default. */
+    palette: List<Int> = GooglePalette.calendarColors,
+    /** Set for calendars: shown by default in all widgets. */
+    included: Boolean? = null,
+    onIncluded: (Boolean) -> Unit = {},
 ) {
     var picking by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            included?.let { Checkbox(it, onCheckedChange = onIncluded) }
             Column(Modifier.weight(1f)) {
                 Text(label)
                 sublabel?.let {
@@ -144,7 +150,7 @@ fun CalendarStyleRow(
             }
         }
         if (picking && onColor != null && sourceColor != null) {
-            CalendarColorDialog(color.toArgb(), sourceColor, onPick = { onColor(it); picking = false }, onDismiss = { picking = false })
+            CalendarColorDialog(color.toArgb(), sourceColor, palette, onPick = { onColor(it); picking = false }, onDismiss = { picking = false })
         }
         Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             StyleDropdown(stringResource(R.string.fill), ChipPattern.entries, fill, onFill, Modifier.weight(1f),
@@ -275,13 +281,13 @@ fun ColorChoice(colors: List<Int>, selected: Int, onSelect: (Int) -> Unit) {
  * colour (FR-E4a). Material 3 has no colour picker component.
  */
 @Composable
-fun CalendarColorDialog(current: Int, source: Int, onPick: (Int?) -> Unit, onDismiss: () -> Unit) {
+fun CalendarColorDialog(current: Int, source: Int, palette: List<Int>, onPick: (Int?) -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.color)) },
         text = {
             Column {
-                ColorChoice(GooglePalette.calendarColors, current) { onPick(if (it == source) null else it) }
+                ColorChoice(palette, current) { onPick(if (it == source) null else it) }
                 Row(
                     Modifier.fillMaxWidth().padding(top = 16.dp).clip(RoundedCornerShape(8.dp)).clickable { onPick(null) }.padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,

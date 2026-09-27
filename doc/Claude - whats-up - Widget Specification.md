@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.11
+Version: v1.12
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -316,7 +316,7 @@ combinations the presets offer.
   ones (for example `#FAD165` → Banana `#F6BF26`) and matches Google
   Calendar. Colours outside that palette are used as stored.
 - **FR-E4a** Each calendar's colour can be replaced in whats-up
-  ("Calendar styles" on the main screen), from Google Calendar's 24
+  ("Calendars" in the settings), from Google Calendar's 24
   calendar colours, and reset to the source colour. Events with their own
   colour keep it. This is needed because colour changes made in Google
   Calendar don't reach Android's calendar provider (the provider on the
@@ -388,9 +388,13 @@ combinations the presets offer.
 
 ### 5.6 Configuration (C)
 
-- **FR-C1** The configuration activity has a **live preview at the real
-  widget size** (Q-46). The same Glance composable is rendered in the
-  activity.
+- **FR-C1** There is **one settings screen**, opened from the app icon and
+  from a widget's "Widget settings" (v1.12). It shows a **live preview at
+  the real widget size** (Q-46; the same Glance composable, rendered in the
+  screen), then the selected widget's settings (a selector picks the widget
+  when there are several), then the settings all widgets share: calendars
+  (shown by default, colour, fill, outline), birthdays and holidays.
+  Changes apply at once; there is no Save button.
 - **FR-C2** `android:widgetFeatures="reconfigurable|configuration_optional"`.
   Placing a widget applies the default preset immediately, and long-press
   → "Widget settings" reopens the configuration.
@@ -539,5 +543,6 @@ figures must be validated against primary sources before external use.
 | v1.9 | 27 September 2026 | Henning Gründl | Calendar colour overrides with reset (FR-E4a); day popup next to the tapped day (FR-I1, FR-I2) — generated with Claude AI |
 | v1.10 | 27 September 2026 | Henning Gründl | M2 layouts: month grid, agenda, upcoming birthdays, next up with countdown; "+N" in the day header — generated with Claude AI |
 | v1.11 | 27 September 2026 | Henning Gründl | M3 layouts: week and day timelines, week + agenda, next up + birthdays — generated with Claude AI |
+| v1.12 | 27 September 2026 | Henning Gründl | App and widget settings merged into one screen (FR-C1) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

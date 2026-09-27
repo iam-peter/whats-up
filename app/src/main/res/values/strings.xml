@@ -14,14 +14,11 @@
         <item quantity="one">%1$d entry</item>
         <item quantity="other">%1$d entries</item>
     </plurals>
-    <string name="permissions">Permissions</string>
-    <string name="permissions_ok">Calendar access granted.</string>
     <string name="add_widget">Add widget to home screen</string>
     <string name="birthdays">Birthdays</string>
     <string name="birthdays_from_contacts">From contacts</string>
     <string name="birthdays_from_calendar">From calendars (Google birthdays)</string>
     <string name="preferred_holiday_calendar">Preferred holiday calendar</string>
-    <string name="default_calendars">Default calendars</string>
     <string name="weeks">Weeks</string>
     <string name="auto">Auto</string>
     <string name="text_size">Text size</string>
@@ -35,10 +32,7 @@
     <string name="dynamic_colors">Dynamic colours</string>
     <string name="tint_weekends">Tint weekends</string>
     <string name="week_numbers">Week numbers</string>
-    <string name="calendars">Calendars</string>
     <string name="use_default_calendars">Use default calendars</string>
-    <string name="save">Save</string>
-    <string name="patterns">Patterns</string>
     <string name="contact_birthdays">Birthdays from contacts</string>
     <string name="pattern_none">Solid</string>
     <string name="pattern_stripes">Stripes</string>
@@ -54,22 +48,18 @@
     <string name="event_times">Event times</string>
     <string name="accent_color">Accent colour</string>
     <string name="calendar_app">Calendar app</string>
-    <string name="opens_on_tap">Opens on tap</string>
     <string name="system_default">System default</string>
     <string name="holiday_calendars">Holiday calendars</string>
     <string name="today_title">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>
     <string name="no_entries">No entries</string>
-    <string name="contact_birthday_color">Colour of contact birthdays</string>
-    <string name="google_birthday_color">Colour of Google birthdays</string>
     <string name="google_birthdays">Google birthdays</string>
     <string name="custom_color">Custom colour, tap to change</string>
     <string name="calendar_color">Calendar colour, tap to change</string>
     <string name="color">Colour</string>
     <string name="reset_calendar_color">Reset to calendar colour</string>
     <string name="close">Close</string>
-    <string name="calendar_styles">Calendar styles</string>
     <string name="popup_next_to_day">Day popup next to the tapped day</string>
     <string name="all_day">All day</string>
     <string name="now_until">Now, until %1$s</string>
@@ -86,4 +76,12 @@
     <string name="layout_day_timeline">Day timeline</string>
     <string name="layout_grid_agenda">Week + agenda</string>
     <string name="layout_next_up_birthdays">Next up + birthdays</string>
+    <string name="widget">Widget</string>
+    <string name="editing">Editing</string>
+    <string name="widget_n">Widget %1$d · %2$s</string>
+    <string name="no_widget_yet">No widget on the home screen yet.</string>
+    <string name="add_another_widget">Add another widget</string>
+    <string name="done">Done</string>
+    <string name="calendars_all_widgets">Calendars (all widgets)</string>
+    <string name="calendars_hint">Tick to show a calendar by default. Tap the dot to change its colour.</string>
 </resources>

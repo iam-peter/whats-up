@@ -13,14 +13,11 @@
         <item quantity="one">%1$d Eintrag</item>
         <item quantity="other">%1$d Einträge</item>
     </plurals>
-    <string name="permissions">Berechtigungen</string>
-    <string name="permissions_ok">Kalenderzugriff erteilt.</string>
     <string name="add_widget">Widget zum Startbildschirm hinzufügen</string>
     <string name="birthdays">Geburtstage</string>
     <string name="birthdays_from_contacts">Aus Kontakten</string>
     <string name="birthdays_from_calendar">Aus Kalendern (Google-Geburtstage)</string>
     <string name="preferred_holiday_calendar">Bevorzugter Feiertagskalender</string>
-    <string name="default_calendars">Standardkalender</string>
     <string name="weeks">Wochen</string>
     <string name="auto">Auto</string>
     <string name="text_size">Textgröße</string>
@@ -34,10 +31,7 @@
     <string name="dynamic_colors">Dynamische Farben</string>
     <string name="tint_weekends">Wochenenden einfärben</string>
     <string name="week_numbers">Kalenderwochen</string>
-    <string name="calendars">Kalender</string>
     <string name="use_default_calendars">Standardkalender verwenden</string>
-    <string name="save">Speichern</string>
-    <string name="patterns">Muster</string>
     <string name="contact_birthdays">Geburtstage aus Kontakten</string>
     <string name="pattern_none">Vollfarbe</string>
     <string name="pattern_stripes">Streifen</string>
@@ -53,22 +47,18 @@
     <string name="event_times">Uhrzeiten</string>
     <string name="accent_color">Akzentfarbe</string>
     <string name="calendar_app">Kalender-App</string>
-    <string name="opens_on_tap">Öffnet beim Antippen</string>
     <string name="system_default">Systemstandard</string>
     <string name="holiday_calendars">Feiertagskalender</string>
     <string name="today_title">Heute</string>
     <string name="tomorrow">Morgen</string>
     <string name="yesterday">Gestern</string>
     <string name="no_entries">Keine Einträge</string>
-    <string name="contact_birthday_color">Farbe der Kontakt-Geburtstage</string>
-    <string name="google_birthday_color">Farbe der Google-Geburtstage</string>
     <string name="google_birthdays">Google-Geburtstage</string>
     <string name="custom_color">Eigene Farbe, zum Ändern tippen</string>
     <string name="calendar_color">Kalenderfarbe, zum Ändern tippen</string>
     <string name="color">Farbe</string>
     <string name="reset_calendar_color">Auf Kalenderfarbe zurücksetzen</string>
     <string name="close">Schließen</string>
-    <string name="calendar_styles">Kalenderdarstellung</string>
     <string name="popup_next_to_day">Tagesansicht neben dem angetippten Tag</string>
     <string name="all_day">Ganztägig</string>
     <string name="now_until">Jetzt, bis %1$s</string>
@@ -85,4 +75,12 @@
     <string name="layout_day_timeline">Tages-Zeitleiste</string>
     <string name="layout_grid_agenda">Woche + Terminliste</string>
     <string name="layout_next_up_birthdays">Als Nächstes + Geburtstage</string>
+    <string name="widget">Widget</string>
+    <string name="editing">Bearbeiten</string>
+    <string name="widget_n">Widget %1$d · %2$s</string>
+    <string name="no_widget_yet">Noch kein Widget auf dem Startbildschirm.</string>
+    <string name="add_another_widget">Weiteres Widget hinzufügen</string>
+    <string name="done">Fertig</string>
+    <string name="calendars_all_widgets">Kalender (alle Widgets)</string>
+    <string name="calendars_hint">Anhaken, um einen Kalender standardmäßig zu zeigen. Punkt antippen, um die Farbe zu ändern.</string>
 </resources>
