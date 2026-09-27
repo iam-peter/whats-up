@@ -28,7 +28,7 @@ fixes its rendering problems and makes the layout more configurable.
 - German and English, with TalkBack descriptions.
 
 Requires Android 12 or later. The requirements are in
-`Claude - whats-up - Widget Specification.md`.
+[doc/Claude - whats-up - Widget Specification.md](doc/Claude%20-%20whats-up%20-%20Widget%20Specification.md).
 
 ## Install
 
