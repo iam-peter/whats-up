@@ -55,7 +55,7 @@ class WhatsUpWidget : GlanceAppWidget() {
             val today = LocalDate.now()
             val hasPermission = Permissions.hasCalendar(context)
             val fdow = WeekFields.of(context.resources.configuration.locales[0]).firstDayOfWeek
-            val cfg = config.widget(appWidgetId)
+            val cfg = config.resolvedWidget(appWidgetId)
             // Each layout loads only the days it can show.
             val (from, to) = when (cfg.layout) {
                 WidgetLayout.ROLLING_GRID, WidgetLayout.WEEK_TIMELINE, WidgetLayout.DAY_TIMELINE ->
@@ -69,7 +69,7 @@ class WhatsUpWidget : GlanceAppWidget() {
             val entries = if (hasPermission) {
                 EntryLoader(context).load(from, to, config, config.calendarIdsFor(appWidgetId))
             } else emptyList()
-            return WidgetState(hasPermission, entries, config.widget(appWidgetId), today, Instant.now(), appWidgetId)
+            return WidgetState(hasPermission, entries, cfg, today, Instant.now(), appWidgetId)
         }
     }
 }

@@ -281,8 +281,8 @@ combinations the presets offer.
   Google Calendar's birthdays its birthday **green** (Sage `#33B679`), so
   they look the same as in Google Calendar. Several birthdays on one day
   are grouped per source.
-- **FR-B6** The cake icon is a per-widget setting: always shown or never
-  shown. It sits beside the text and narrows it; it is never dropped to
+- **FR-B6** The cake icon is a setting for all widgets, in the Birthdays
+  section: always shown or never shown. It sits beside the text and narrows it; it is never dropped to
   make room.
 
 ### 5.3 Event rendering (E)

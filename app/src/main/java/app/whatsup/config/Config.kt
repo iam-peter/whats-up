@@ -4,6 +4,7 @@ import app.whatsup.logic.GooglePalette
 import app.whatsup.model.ChipPattern
 import app.whatsup.model.LineStyle
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 enum class Density { COMPACT, COMFORTABLE }
 enum class BackgroundStyle { PER_CELL, SINGLE }
@@ -35,6 +36,8 @@ data class GlobalConfig(
      * (FR-B1). Off by default, so both sources stay visible for cleaning up.
      */
     val hideDuplicateBirthdays: Boolean = false,
+    /** Cake icon on birthday entries, in all widgets: always or never (FR-B6). */
+    val showBirthdayIcon: Boolean = true,
     val birthdaysFromContacts: Boolean = true,
     val birthdaysFromCalendar: Boolean = true,
     /** Birthdays from Contacts (FR-B7). */
@@ -71,7 +74,11 @@ data class WidgetConfig(
     val backgroundOpacity: Float = 1f,
     val weekendStyle: WeekendStyle = WeekendStyle.NONE,
     val showWeekNumbers: Boolean = false,
-    /** Cake icon on birthday chips: always or never (FR-B6). */
+    /**
+     * Copied from [GlobalConfig.showBirthdayIcon] when a widget is loaded, so
+     * the layout code finds it with the other display options. Not stored.
+     */
+    @Transient
     val showBirthdayIcon: Boolean = true,
     val dynamicColors: Boolean = true,
     /** Accent (today border, day number) when [dynamicColors] is off; ARGB. */
@@ -92,5 +99,8 @@ data class AppConfig(
     val refreshToken: Long = 0,
 ) {
     fun widget(appWidgetId: Int) = widgets[appWidgetId] ?: WidgetConfig()
+
+    /** A widget's config with the display options that are set for all widgets. */
+    fun resolvedWidget(appWidgetId: Int) = widget(appWidgetId).copy(showBirthdayIcon = global.showBirthdayIcon)
     fun calendarIdsFor(appWidgetId: Int) = widget(appWidgetId).calendarIds ?: global.calendarIds
 }

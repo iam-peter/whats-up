@@ -285,7 +285,6 @@ private fun WidgetSection(config: AppConfig, cfg: WidgetConfig, calendars: List<
         update { copy(weekendStyle = if (v) WeekendStyle.TINTED else WeekendStyle.NONE) }
     }
     SwitchRow(stringResource(R.string.week_numbers), cfg.showWeekNumbers) { v -> update { copy(showWeekNumbers = v) } }
-    SwitchRow(stringResource(R.string.birthday_icon), cfg.showBirthdayIcon) { v -> update { copy(showBirthdayIcon = v) } }
     SwitchRow(stringResource(R.string.event_times), cfg.showEventTimes) { v -> update { copy(showEventTimes = v) } }
     SwitchRow(stringResource(R.string.popup_next_to_day), cfg.popupNextToDay) { v -> update { copy(popupNextToDay = v) } }
 
@@ -354,6 +353,7 @@ private fun BirthdaysSection(
         onIncluded = { on -> update { copy(birthdaysFromCalendar = on) } },
         onClick = { onOpen(Page.GoogleBirthdays) },
     )
+    SwitchRow(stringResource(R.string.birthday_icon), global.showBirthdayIcon) { on -> update { copy(showBirthdayIcon = on) } }
     if (global.birthdaysFromContacts && global.birthdaysFromCalendar) {
         SwitchRow(stringResource(R.string.hide_duplicate_birthdays), global.hideDuplicateBirthdays) { on -> update { copy(hideDuplicateBirthdays = on) } }
     }
