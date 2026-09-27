@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.13
+Version: v1.14
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -115,7 +115,7 @@ stored as `TypedValue` complex values. For example, `43521` = 0xAA01 =
 | W4 | Right column clipped by the widget edge | ✅ | FR-T5 |
 | W5 | Next-month days have no cell background | kept | Kept on purpose in v1.5: it marks the next month (FR-T2) |
 | W6 | "2 birthdays" hides the names | ❌ kept | The user chose aggregation (Q-11); names are shown in the in-app day view (D-3) |
-| W7 | Duplicate holidays | ✅ | FR-D5 |
+| W7 | Duplicate holidays | ✅ | Untick one of the two holiday calendars; FR-D5 hides identical events |
 | W8 | Past days look like future days | ✅ | FR-E5 |
 | W9 | Weekends not distinguished | M1 option | FR-T4, configurable |
 | W10 | Not reconfigurable from the launcher | ✅ | FR-C2 |
@@ -240,18 +240,12 @@ combinations the presets offer.
   can override (Q-15).
 - **FR-D4** Declined events (`SELF_ATTENDEE_STATUS = DECLINED`) and
   cancelled events (`STATUS = CANCELED`) are **hidden** (Q-14).
-- **FR-D5** De-duplication (Q-13; optional since v1.13, "Hide duplicate holidays", **off** by default so holidays look as in Google Calendar): on the same day, all-day entries that
-  come from calendars classified as *holiday calendars* are merged if
-  their normalised titles match, or if both calendars mark the date as a
-  public holiday. The entry from the calendar that is first in the user's
-  calendar order is kept.
-  - Classification: the calendar's owner matches
-    `*#holiday@group.v.calendar.google.com`, or the user ticks it under
-    "Holiday calendars" in the settings.
-  - Titles in different languages (for example "Day of German Unity" and
-    "Tag der Deutschen Einheit") cannot be matched by their titles. For
-    these, the rule is **one entry per day per holiday calendar group**,
-    with the user choosing the preferred holiday calendar (D-4). If nothing is chosen, the holiday calendar with the lowest ID is preferred.
+- **FR-D5** Duplicate events (v1.14; replaces the holiday-specific
+  de-duplication of Q-13/D-4): "Hide duplicate events", **off** by default,
+  shows an event once when several calendars have it with the same title,
+  days and start (from the calendar with the lowest ID). There is no
+  holiday detection: holidays in two languages don't match, and the user
+  unticks one of the two calendars instead.
 - **FR-D6** Order within a day (Q-27): birthdays, then all-day events,
   then timed events by start time.
 
@@ -395,8 +389,10 @@ combinations the presets offer.
   the real widget size** (Q-46; the same Glance composable, rendered in the
   screen), then the selected widget's settings (a selector picks the widget
   when there are several), then the settings all widgets share: calendars
-  (shown by default, colour, fill, outline), birthdays and holidays.
-  Changes apply at once; there is no Save button.
+  (shown by default, colour, fill, outline) and birthdays.
+  Changes apply at once; there is no Save button. Each calendar and each
+  birthday source has its own page (v1.14): a sample of its entries, show
+  by default, colour (with reset to the source colour), fill and outline.
 - **FR-C2** `android:widgetFeatures="reconfigurable|configuration_optional"`.
   Placing a widget applies the default preset immediately, and long-press
   → "Widget settings" reopens the configuration.
@@ -485,7 +481,7 @@ combinations the presets offer.
 - **No overflow.** No content crosses the widget outline; titles wrap at
   word boundaries before they are clipped.
 - **Times shown.** Timed events show their start time in an outlined chip.
-- **No duplicate holidays.** Holidays such as 3 October appear once.
+- **No duplicate holidays** once one of two same-content holiday calendars is unticked.
 - **Cells and dimming.** Current-month days have a cell background, next-month
   days none, and past days are dimmed.
 - **Resizes like Chronos.** The widget resizes down to 170 × 40 dp and
@@ -505,7 +501,7 @@ resolved as proposed on 24 September 2026.
 | **D-1** | Q-02 (open source on GitHub/F-Droid) vs Q-50 (private / no licence) | Develop privately until M1. Licence: **Apache-2.0**, copyright Henning Gründl (chosen 25 September 2026) |
 | **D-2** | Q-03 (in-app day view opened from the widget) vs Q-38/Q-39 (taps open the calendar app) | "+N" and aggregated birthday chips open the in-app day view. Revised in v1.6: every tap opens the day popup (FR-I1) |
 | **D-3** | Q-11 (always aggregate birthdays) vs fixing W6 | Aggregate 2 or more birthdays; a single birthday shows name and age. Names appear in the in-app day view and in TalkBack |
-| **D-4** | Q-13: holidays in two languages can't be matched by title | Preferred holiday calendar; other holiday calendars are hidden on days where the preferred one has an entry |
+| **D-4** | Q-13: holidays in two languages can't be matched by title | Preferred holiday calendar (v0.2). Dropped in v1.14: the user unticks one holiday calendar; FR-D5 only merges identical events |
 | **D-5** | Q-43 (network only for ICS) vs Q-08 (no ICS) | No INTERNET permission |
 | **D-6** | Q-01: the "calendar widget" couldn't be sized like the month widget | Every whats-up layout reaches 170 × 40 dp (W12) |
 
@@ -547,5 +543,6 @@ figures must be validated against primary sources before external use.
 | v1.11 | 27 September 2026 | Henning Gründl | M3 layouts: week and day timelines, week + agenda, next up + birthdays — generated with Claude AI |
 | v1.12 | 27 September 2026 | Henning Gründl | App and widget settings merged into one screen (FR-C1) — generated with Claude AI |
 | v1.13 | 27 September 2026 | Henning Gründl | "Hide duplicate holidays" and "Hide duplicate birthdays", both off by default (FR-D5, FR-B1) — generated with Claude AI |
+| v1.14 | 27 September 2026 | Henning Gründl | Holiday detection removed; generic "Hide duplicate events" (FR-D5); a settings page per calendar and birthday source (FR-C1) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

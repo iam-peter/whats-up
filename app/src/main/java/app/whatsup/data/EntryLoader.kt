@@ -5,7 +5,7 @@ import app.whatsup.config.AppConfig
 import app.whatsup.logic.BirthdayRules
 import app.whatsup.logic.BirthdayMerger
 import app.whatsup.logic.ColorOverrides
-import app.whatsup.logic.HolidayDeduplicator
+import app.whatsup.logic.EventDeduplicator
 import app.whatsup.logic.PatternAssigner
 import app.whatsup.model.BirthdaySource
 import app.whatsup.model.CalendarEntry
@@ -25,7 +25,7 @@ class EntryLoader(context: Context) {
         zone: ZoneId = ZoneId.systemDefault(),
     ): List<CalendarEntry> {
         val global = config.global
-        val (calendarBirthdays, events) = calendars.instances(from, to, calendarIds, zone, global.extraHolidayCalendarIds)
+        val (calendarBirthdays, events) = calendars.instances(from, to, calendarIds, zone)
             .partition { it.kind == EntryKind.BIRTHDAY }
         val contactBirthdays = if (global.birthdaysFromContacts) {
             contacts.birthdays().flatMap { b ->
@@ -40,8 +40,8 @@ class EntryLoader(context: Context) {
         val fromCalendar = if (global.birthdaysFromCalendar) calendarBirthdays.map { it.copy(color = global.googleBirthdayColor) } else emptyList()
         // Both sources stay visible unless the user hides duplicates (FR-B1).
         val birthdays = if (global.hideDuplicateBirthdays) BirthdayMerger.merge(contactBirthdays, fromCalendar) else contactBirthdays + fromCalendar
-        val holidays = if (global.hideDuplicateHolidays) HolidayDeduplicator.apply(events, global.preferredHolidayCalendarId) else events
-        val styled = ColorOverrides.apply(holidays, global)
+        val shown = if (global.hideDuplicateEvents) EventDeduplicator.apply(events) else events
+        val styled = ColorOverrides.apply(shown, global)
         return PatternAssigner.assign(styled + birthdays, global)
     }
 }

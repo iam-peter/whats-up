@@ -27,8 +27,8 @@ fixes its rendering problems and makes the layout more configurable.
   that have already ended are dimmed.
 - **Per-calendar styles:** a fill pattern (stripes, dots, grid, zigzag)
   and an outline style (solid, dashed, dotted) for each calendar.
-- **Holiday de-duplication** across holiday calendars in different
-  languages; any calendar can be marked as a holiday calendar.
+- **Optional duplicate hiding** for events that are in several calendars
+  and for birthdays in both Contacts and Google Calendar (off by default).
 - **Configurable per widget** with a live preview: weeks, text size,
   density, background, weekend tint, week numbers, event times, colours,
   calendars, and which calendar app opens events.

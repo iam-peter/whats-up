@@ -6,33 +6,18 @@ import app.whatsup.model.CalendarEntry
 import app.whatsup.model.ChipPattern
 import app.whatsup.model.LineStyle
 import app.whatsup.model.EntryKind
-import java.time.LocalDate
 
 internal fun normalize(s: String) = s.lowercase().filter { it.isLetterOrDigit() }
 
-object HolidayDeduplicator {
+object EventDeduplicator {
     /**
-     * Spec FR-D5 / D-4: on days where the preferred holiday calendar has an
-     * entry, entries from other holiday calendars are dropped. Identical
-     * titles across holiday calendars are merged as well.
+     * Spec FR-D5 (v1.14): the same event in several calendars (same title,
+     * days and start) is shown once, from the calendar with the lowest ID.
+     * Holidays in two languages don't match; the user unticks one calendar.
      */
-    fun apply(entries: List<CalendarEntry>, preferredCalendarId: Long?): List<CalendarEntry> {
-        val holidays = entries.filter { it.isHoliday }
-        if (holidays.isEmpty()) return entries
-        val preferred = preferredCalendarId?.takeIf { id -> holidays.any { it.calendarId == id } }
-            ?: holidays.mapNotNull { it.calendarId }.minOrNull()
-        val preferredDays: Set<LocalDate> = holidays
-            .filter { it.calendarId == preferred }
-            .flatMap { e -> generateSequence(e.firstDay) { it.plusDays(1) }.takeWhile { !it.isAfter(e.lastDay) } }
-            .toSet()
-
-        val seen = HashSet<Pair<LocalDate, String>>()
-        return entries.filter { e ->
-            if (!e.isHoliday) return@filter true
-            if (e.calendarId != preferred && e.firstDay in preferredDays) return@filter false
-            seen.add(e.firstDay to normalize(e.title))
-        }
-    }
+    fun apply(entries: List<CalendarEntry>): List<CalendarEntry> =
+        entries.sortedBy { it.calendarId ?: Long.MAX_VALUE }
+            .distinctBy { listOf(normalize(it.title), it.firstDay, it.lastDay, it.start) }
 }
 
 object BirthdayMerger {

@@ -37,7 +37,6 @@ data class CalendarEntry(
     val end: Instant? = null,
     val eventId: Long? = null,
     val calendarId: Long? = null,
-    val isHoliday: Boolean = false,
     /** Only for birthdays with a known birth year. */
     val age: Int? = null,
     val pattern: ChipPattern = ChipPattern.NONE,

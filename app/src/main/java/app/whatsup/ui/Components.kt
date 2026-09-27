@@ -106,65 +106,6 @@ fun CalendarPicker(calendars: List<CalendarInfo>, selected: Set<Long>?, onChange
     }
 }
 
-/**
- * A calendar (or the contacts birthday source) with its fill and, for
- * calendars with timed events, outline choices (FR-E6).
- */
-@Composable
-fun CalendarStyleRow(
-    label: String,
-    sublabel: String?,
-    color: Color,
-    fill: ChipPattern,
-    onFill: (ChipPattern) -> Unit,
-    line: LineStyle?,
-    onLine: (LineStyle) -> Unit = {},
-    /** The source colour and a callback (null = reset to it). */
-    sourceColor: Int? = null,
-    onColor: ((Int?) -> Unit)? = null,
-    /** Colours offered in the picker; Google Calendar's calendar colours by default. */
-    palette: List<Int> = GooglePalette.calendarColors,
-    /** Set for calendars: shown by default in all widgets. */
-    included: Boolean? = null,
-    onIncluded: (Boolean) -> Unit = {},
-) {
-    var picking by remember { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            included?.let { Checkbox(it, onCheckedChange = onIncluded) }
-            Column(Modifier.weight(1f)) {
-                Text(label)
-                sublabel?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            if (onColor != null && sourceColor != null) {
-                val custom = color.toArgb() != sourceColor
-                val name = stringResource(if (custom) R.string.custom_color else R.string.calendar_color)
-                Box(
-                    Modifier.size(32.dp).clip(CircleShape).background(color)
-                        .border(if (custom) 2.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                        .clickable(onClickLabel = name) { picking = true }
-                        .semantics { contentDescription = name },
-                )
-            }
-        }
-        if (picking && onColor != null && sourceColor != null) {
-            CalendarColorDialog(color.toArgb(), sourceColor, palette, onPick = { onColor(it); picking = false }, onDismiss = { picking = false })
-        }
-        Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StyleDropdown(stringResource(R.string.fill), ChipPattern.entries, fill, onFill, Modifier.weight(1f),
-                name = { stringResource(patternName(it)) }) { FillSwatch(color, it) }
-            if (line != null) {
-                StyleDropdown(stringResource(R.string.outline), LineStyle.entries, line, onLine, Modifier.weight(1f),
-                    name = { stringResource(lineName(it)) }) { LineSwatch(color, it) }
-            } else {
-                Spacer(Modifier.weight(1f))
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> StyleDropdown(
@@ -208,7 +149,7 @@ private val SWATCH_HEIGHT = 18.dp
 
 /** Drawn like the widget: the tile tinted to the colour, transparent in between. */
 @Composable
-private fun FillSwatch(color: Color, pattern: ChipPattern) {
+internal fun FillSwatch(color: Color, pattern: ChipPattern) {
     val tile: ImageBitmap? = patternTile(pattern)?.let { ImageBitmap.imageResource(it) }
     val brush = remember(tile) { tile?.let { ShaderBrush(ImageShader(it, TileMode.Repeated, TileMode.Repeated)) } }
     Box(
@@ -220,7 +161,7 @@ private fun FillSwatch(color: Color, pattern: ChipPattern) {
 
 /** Matches the chip_outline* drawables. */
 @Composable
-private fun LineSwatch(color: Color, style: LineStyle) {
+internal fun LineSwatch(color: Color, style: LineStyle) {
     Box(
         Modifier.size(SWATCH_WIDTH, SWATCH_HEIGHT).drawBehind {
             val width = (if (style == LineStyle.DOTTED) 1.5.dp else 1.dp).toPx()
@@ -240,7 +181,7 @@ private fun LineSwatch(color: Color, style: LineStyle) {
     )
 }
 
-private fun patternName(pattern: ChipPattern) = when (pattern) {
+internal fun patternName(pattern: ChipPattern) = when (pattern) {
     ChipPattern.NONE -> R.string.pattern_none
     ChipPattern.STRIPES -> R.string.pattern_stripes
     ChipPattern.DOTS -> R.string.pattern_dots
@@ -248,7 +189,7 @@ private fun patternName(pattern: ChipPattern) = when (pattern) {
     ChipPattern.ZIGZAG -> R.string.pattern_zigzag
 }
 
-private fun lineName(style: LineStyle) = when (style) {
+internal fun lineName(style: LineStyle) = when (style) {
     LineStyle.SOLID -> R.string.line_solid
     LineStyle.DASHED -> R.string.line_dashed
     LineStyle.DOTTED -> R.string.line_dotted
@@ -275,28 +216,25 @@ fun ColorChoice(colors: List<Int>, selected: Int, onSelect: (Int) -> Unit) {
     }
 }
 
-/**
- * Colour choice for a calendar: Google Calendar's own 24 colours, so a pick
- * always matches what Google Calendar can show, plus a reset to the source
- * colour (FR-E4a). Material 3 has no colour picker component.
- */
+
+/** Fills a chip like the widget does: solid, or the pattern tile tinted, see-through in between. */
 @Composable
-fun CalendarColorDialog(current: Int, source: Int, palette: List<Int>, onPick: (Int?) -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.color)) },
-        text = {
-            Column {
-                ColorChoice(palette, current) { onPick(if (it == source) null else it) }
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 16.dp).clip(RoundedCornerShape(8.dp)).clickable { onPick(null) }.padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(Modifier.size(24.dp).clip(CircleShape).background(Color(source)))
-                    Text(stringResource(R.string.reset_calendar_color), Modifier.padding(start = 12.dp))
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
+fun Modifier.chipFill(color: Color, pattern: ChipPattern): Modifier {
+    val tile: ImageBitmap? = patternTile(pattern)?.let { ImageBitmap.imageResource(it) }
+    val brush = remember(tile) { tile?.let { ShaderBrush(ImageShader(it, TileMode.Repeated, TileMode.Repeated)) } }
+    return drawBehind { if (brush == null) drawRect(color) else drawRect(brush, colorFilter = ColorFilter.tint(color)) }
+}
+
+/** Outlines a chip like the widget does (matches the chip_outline* drawables). */
+fun Modifier.chipOutline(color: Color, style: LineStyle): Modifier = drawBehind {
+    val width = (if (style == LineStyle.DOTTED) 1.5.dp else 1.dp).toPx()
+    val effect = when (style) {
+        LineStyle.SOLID -> null
+        LineStyle.DASHED -> PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 2.dp.toPx()))
+        LineStyle.DOTTED -> PathEffect.dashPathEffect(floatArrayOf(1.5.dp.toPx(), 1.5.dp.toPx()))
+    }
+    drawRoundRect(
+        color, topLeft = Offset(width / 2, width / 2), size = Size(size.width - width, size.height - width),
+        cornerRadius = CornerRadius(3.dp.toPx()), style = Stroke(width, pathEffect = effect),
     )
 }

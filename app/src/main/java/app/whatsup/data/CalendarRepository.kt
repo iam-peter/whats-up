@@ -21,10 +21,7 @@ data class CalendarInfo(
     val name: String,
     val account: String,
     val color: Int,
-    val isHoliday: Boolean,
     val isBirthdays: Boolean,
-    /** Recognised as a Google holiday calendar, independent of the settings. */
-    val autoHoliday: Boolean = isHoliday,
 )
 
 class CalendarRepository(private val context: Context) {
@@ -34,14 +31,11 @@ class CalendarRepository(private val context: Context) {
         /** How Google marks its own birthday entries in a normal calendar. */
         private const val EVENT_TYPE_PROPERTY = "shared:calendarProviderEventType"
         private const val EVENT_TYPE_BIRTHDAY = "BIRTHDAY"
-        private const val HOLIDAY_SUFFIX = "#holiday@group.v.calendar.google.com"
 
-        fun isHoliday(owner: String?) = owner?.endsWith(HOLIDAY_SUFFIX) == true
         fun isBirthdays(owner: String?) = owner == BIRTHDAY_CALENDAR
     }
 
-    /** [extraHolidayIds]: calendars the user marked as holiday calendars (FR-D5). */
-    fun calendars(extraHolidayIds: Set<Long> = emptySet()): List<CalendarInfo> {
+    fun calendars(): List<CalendarInfo> {
         if (!Permissions.hasCalendar(context)) return emptyList()
         val projection = arrayOf(
             Calendars._ID, Calendars.CALENDAR_DISPLAY_NAME, Calendars.ACCOUNT_NAME,
@@ -56,7 +50,7 @@ class CalendarRepository(private val context: Context) {
                     val owner = c.getString(4)
                     val id = c.getLong(0)
                     add(CalendarInfo(id, c.getString(1) ?: "", c.getString(2) ?: "", GooglePalette.current(c.getInt(3)),
-                        isHoliday(owner) || id in extraHolidayIds, isBirthdays(owner), autoHoliday = isHoliday(owner)))
+                        isBirthdays(owner)))
                 }
             }
         }.orEmpty()
@@ -72,7 +66,6 @@ class CalendarRepository(private val context: Context) {
         to: LocalDate,
         calendarIds: Set<Long>?,
         zone: ZoneId,
-        extraHolidayIds: Set<Long> = emptySet(),
     ): List<CalendarEntry> {
         if (!Permissions.hasCalendar(context)) return emptyList()
         // All-day instances are stored in UTC; widen the window by a day on each side.
@@ -127,7 +120,6 @@ class CalendarRepository(private val context: Context) {
                             eventId = c.getLong(0),
                             calendarId = c.getLong(6),
                             hasOwnColor = !c.isNull(10) && c.getInt(10) != 0,
-                            isHoliday = isHoliday(owner) || c.getLong(6) in extraHolidayIds,
                             birthdaySource = if (isBirthdays(owner) || c.getLong(0) in googleBirthdays) BirthdaySource.GOOGLE else null,
                         )
                     )

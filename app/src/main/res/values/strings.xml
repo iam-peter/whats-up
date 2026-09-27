@@ -16,9 +16,6 @@
     </plurals>
     <string name="add_widget">Add widget to home screen</string>
     <string name="birthdays">Birthdays</string>
-    <string name="birthdays_from_contacts">From contacts</string>
-    <string name="birthdays_from_calendar">From calendars (Google birthdays)</string>
-    <string name="preferred_holiday_calendar">Preferred holiday calendar</string>
     <string name="weeks">Weeks</string>
     <string name="auto">Auto</string>
     <string name="text_size">Text size</string>
@@ -49,17 +46,13 @@
     <string name="accent_color">Accent colour</string>
     <string name="calendar_app">Calendar app</string>
     <string name="system_default">System default</string>
-    <string name="holiday_calendars">Holiday calendars</string>
     <string name="today_title">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>
     <string name="no_entries">No entries</string>
     <string name="google_birthdays">Google birthdays</string>
-    <string name="custom_color">Custom colour, tap to change</string>
-    <string name="calendar_color">Calendar colour, tap to change</string>
     <string name="color">Colour</string>
     <string name="reset_calendar_color">Reset to calendar colour</string>
-    <string name="close">Close</string>
     <string name="popup_next_to_day">Day popup next to the tapped day</string>
     <string name="all_day">All day</string>
     <string name="now_until">Now, until %1$s</string>
@@ -83,7 +76,11 @@
     <string name="add_another_widget">Add another widget</string>
     <string name="done">Done</string>
     <string name="calendars_all_widgets">Calendars (all widgets)</string>
-    <string name="calendars_hint">Tick to show a calendar by default. Tap the dot to change its colour.</string>
-    <string name="hide_duplicate_holidays">Hide duplicate holidays</string>
+    <string name="calendars_hint">Ticked calendars are shown by default. Tap a calendar for its colour and style.</string>
     <string name="hide_duplicate_birthdays">Hide duplicate birthdays</string>
+    <string name="hide_duplicate_events">Hide duplicate events</string>
+    <string name="back">Back</string>
+    <string name="sample_all_day">All-day event</string>
+    <string name="sample_timed">09:00 Meeting</string>
+    <string name="show_by_default">Show by default</string>
 </resources>

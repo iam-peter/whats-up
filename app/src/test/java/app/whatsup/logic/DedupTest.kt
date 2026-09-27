@@ -9,28 +9,19 @@ import java.time.LocalDate
 class DedupTest {
     private val oct3 = LocalDate.of(2026, 10, 3)
 
-    private fun holiday(title: String, calendarId: Long, day: LocalDate = oct3) =
-        CalendarEntry(EntryKind.ALL_DAY, title, 0, day, calendarId = calendarId, isHoliday = true)
+    private fun event(title: String, calendarId: Long, day: LocalDate = oct3) =
+        CalendarEntry(EntryKind.ALL_DAY, title, 0, day, calendarId = calendarId)
 
-    @Test fun `preferred holiday calendar wins across languages`() {
-        val entries = listOf(holiday("Day of German Unity", 5), holiday("Tag der Deutschen Einheit", 9))
-        assertEquals(listOf("Tag der Deutschen Einheit"), HolidayDeduplicator.apply(entries, 9).map { it.title })
+    @Test fun `the same event in two calendars is shown once`() {
+        val entries = listOf(event("Tag der Deutschen Einheit", 9), event("tag der deutschen einheit!", 5), event("Trash", 9))
+        val kept = EventDeduplicator.apply(entries)
+        assertEquals(listOf(5L, 9L), kept.map { it.calendarId })
+        assertEquals(2, kept.size)
     }
 
-    @Test fun `lowest id is preferred by default`() {
-        val entries = listOf(holiday("Tag der Deutschen Einheit", 9), holiday("Day of German Unity", 5))
-        assertEquals(listOf("Day of German Unity"), HolidayDeduplicator.apply(entries, null).map { it.title })
-    }
-
-    @Test fun `other holiday calendars stay on days the preferred one is empty`() {
-        val entries = listOf(holiday("A", 5), holiday("Only in B", 9, oct3.plusDays(1)))
-        assertEquals(2, HolidayDeduplicator.apply(entries, 5).size)
-    }
-
-    @Test fun `identical titles are merged and normal events untouched`() {
-        val normal = CalendarEntry(EntryKind.ALL_DAY, "Tag der Deutschen Einheit", 0, oct3, calendarId = 1)
-        val entries = listOf(holiday("Tag der Deutschen Einheit", 5), holiday("tag der deutschen einheit!", 5), normal)
-        assertEquals(2, HolidayDeduplicator.apply(entries, null).size)
+    @Test fun `different days or times are not duplicates`() {
+        val entries = listOf(event("Standup", 1), event("Standup", 2, oct3.plusDays(1)))
+        assertEquals(2, EventDeduplicator.apply(entries).size)
     }
 
     @Test fun `hiding duplicate birthdays keeps the contact`() {

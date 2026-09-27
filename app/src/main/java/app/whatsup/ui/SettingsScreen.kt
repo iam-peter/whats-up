@@ -6,6 +6,13 @@ import android.content.ComponentName
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Arrangement
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,6 +73,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** Settings pages: the main list, and a page per calendar or birthday source. */
+private sealed interface Page {
+    data object Main : Page
+    data class Calendar(val id: Long) : Page
+    data object ContactBirthdays : Page
+    data object GoogleBirthdays : Page
+}
+
 /**
  * The one settings screen, opened from the app icon and from a widget's
  * "Widget settings" (FR-C1). It shows the selected widget's preview and
@@ -91,18 +106,61 @@ fun SettingsScreen(initialWidgetId: Int?, onDone: (() -> Unit)?) {
     val cfgAll = config ?: return
     val hasCalendar = remember(permissionEpoch) { Permissions.hasCalendar(context) }
     val hasContacts = remember(permissionEpoch) { Permissions.hasContacts(context) }
-    val calendars = remember(permissionEpoch, cfgAll.global.extraHolidayCalendarIds) {
-        CalendarRepository(context).calendars(cfgAll.global.extraHolidayCalendarIds)
-    }
+    val calendars = remember(permissionEpoch) { CalendarRepository(context).calendars() }
+    var page by remember { mutableStateOf<Page>(Page.Main) }
+    BackHandler(enabled = page != Page.Main) { page = Page.Main }
 
-    fun updateGlobal(block: (GlobalConfig) -> GlobalConfig) = scope.launch {
-        context.configStore.updateData { it.copy(global = block(it.global)) }
+    fun updateGlobal(block: GlobalConfig.() -> GlobalConfig) = scope.launch {
+        context.configStore.updateData { it.copy(global = it.global.block()) }
         WidgetUpdater.refreshAll(context)
     }
     fun updateWidget(id: Int, block: (WidgetConfig) -> WidgetConfig) = scope.launch {
         context.configStore.updateData { it.copy(widgets = it.widgets + (id to block(it.widget(id)))) }
         WhatsUpWidget().update(context, GlanceAppWidgetManager(context).getGlanceIdBy(id))
         UpdateScheduler.ensureScheduled(context)
+    }
+
+    val global = cfgAll.global
+    when (val p = page) {
+        Page.Main -> Unit
+        is Page.Calendar -> {
+            val cal = calendars.firstOrNull { it.id == p.id } ?: run { page = Page.Main; return }
+            StylePage(
+                title = cal.name, subtitle = cal.account,
+                color = global.calendarColors[cal.id] ?: cal.color, sourceColor = cal.color, colors = GooglePalette.calendarColors,
+                fill = global.calendarPatterns[cal.id] ?: ChipPattern.NONE,
+                line = global.calendarLineStyles[cal.id] ?: LineStyle.SOLID,
+                included = global.calendarIds == null || cal.id in global.calendarIds,
+                onIncluded = { on -> updateGlobal { toggleCalendar(cal.id, on, calendars) } },
+                onColor = { c -> updateGlobal { copy(calendarColors = if (c == null) calendarColors - cal.id else calendarColors + (cal.id to c)) } },
+                onFill = { f -> updateGlobal { copy(calendarPatterns = calendarPatterns.withDefault(cal.id, f, ChipPattern.NONE)) } },
+                onLine = { l -> updateGlobal { copy(calendarLineStyles = calendarLineStyles.withDefault(cal.id, l, LineStyle.SOLID)) } },
+                onBack = { page = Page.Main },
+            )
+            return
+        }
+        Page.ContactBirthdays -> {
+            StylePage(
+                title = stringResource(R.string.contact_birthdays), subtitle = null,
+                color = global.contactBirthdayColor, sourceColor = CONTACT_BIRTHDAY_COLOR, colors = BIRTHDAY_COLORS,
+                fill = global.contactBirthdayPattern, line = null,
+                onColor = { c -> updateGlobal { copy(contactBirthdayColor = c ?: CONTACT_BIRTHDAY_COLOR) } },
+                onFill = { f -> updateGlobal { copy(contactBirthdayPattern = f) } },
+                onBack = { page = Page.Main },
+            )
+            return
+        }
+        Page.GoogleBirthdays -> {
+            StylePage(
+                title = stringResource(R.string.google_birthdays), subtitle = null,
+                color = global.googleBirthdayColor, sourceColor = GooglePalette.BIRTHDAY, colors = BIRTHDAY_COLORS,
+                fill = global.googleBirthdayPattern, line = null,
+                onColor = { c -> updateGlobal { copy(googleBirthdayColor = c ?: GooglePalette.BIRTHDAY) } },
+                onFill = { f -> updateGlobal { copy(googleBirthdayPattern = f) } },
+                onBack = { page = Page.Main },
+            )
+            return
+        }
     }
 
     Column(Modifier.safeDrawingPadding().padding(16.dp)) {
@@ -130,9 +188,12 @@ fun SettingsScreen(initialWidgetId: Int?, onDone: (() -> Unit)?) {
                 WidgetSection(cfgAll, cfgAll.widget(id), calendars) { block -> updateWidget(id, block) }
             }
 
-            CalendarsSection(cfgAll.global, calendars) { updateGlobal(it) }
-            BirthdaysSection(cfgAll.global, hasContacts, onNeedContacts = { launcher.launch(arrayOf(Manifest.permission.READ_CONTACTS)) }) { updateGlobal(it) }
-            HolidaysSection(cfgAll.global, calendars) { updateGlobal(it) }
+            CalendarsSection(cfgAll.global, calendars, onOpen = { page = Page.Calendar(it) }) { updateGlobal(it) }
+            BirthdaysSection(
+                cfgAll.global, hasContacts,
+                onNeedContacts = { launcher.launch(arrayOf(Manifest.permission.READ_CONTACTS)) },
+                onOpen = { page = it },
+            ) { updateGlobal(it) }
 
             OutlinedButton(onClick = {
                 AppWidgetManager.getInstance(context)
@@ -245,34 +306,24 @@ private fun WidgetSection(config: AppConfig, cfg: WidgetConfig, calendars: List<
     )
 }
 
-/** Calendars, shared by all widgets: shown by default, colour, fill and outline (FR-D2, FR-E4a, FR-E6). */
+/** Calendars, shared by all widgets (FR-D2, FR-E4a, FR-E6): tap a row for its colour and style. */
 @Composable
-private fun CalendarsSection(global: GlobalConfig, calendars: List<CalendarInfo>, update: (GlobalConfig.() -> GlobalConfig) -> Unit) {
+private fun CalendarsSection(global: GlobalConfig, calendars: List<CalendarInfo>, onOpen: (Long) -> Unit, update: (GlobalConfig.() -> GlobalConfig) -> Unit) {
     val shown = calendars.filterNot { it.isBirthdays }
     if (shown.isEmpty()) return
     SectionTitle(stringResource(R.string.calendars_all_widgets))
     Text(stringResource(R.string.calendars_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     shown.forEach { cal ->
-        val included = global.calendarIds == null || cal.id in global.calendarIds
-        CalendarStyleRow(
-            cal.name, cal.account, Color(global.calendarColors[cal.id] ?: cal.color),
-            fill = global.calendarPatterns[cal.id] ?: ChipPattern.NONE,
-            onFill = { p -> update { copy(calendarPatterns = calendarPatterns.withDefault(cal.id, p, ChipPattern.NONE)) } },
-            line = global.calendarLineStyles[cal.id] ?: LineStyle.SOLID,
-            onLine = { l -> update { copy(calendarLineStyles = calendarLineStyles.withDefault(cal.id, l, LineStyle.SOLID)) } },
-            sourceColor = cal.color,
-            onColor = { c -> update { copy(calendarColors = if (c == null) calendarColors - cal.id else calendarColors + (cal.id to c)) } },
-            included = included,
-            onIncluded = { on ->
-                update {
-                    val all = calendars.map { it.id }.toSet()
-                    val current = calendarIds ?: all
-                    val next = if (on) current + cal.id else current - cal.id
-                    copy(calendarIds = if (next.containsAll(all)) null else next)
-                }
-            },
+        StyleListRow(
+            title = cal.name,
+            summary = styleSummary(global.calendarPatterns[cal.id] ?: ChipPattern.NONE, global.calendarLineStyles[cal.id] ?: LineStyle.SOLID),
+            color = global.calendarColors[cal.id] ?: cal.color,
+            included = global.calendarIds == null || cal.id in global.calendarIds,
+            onIncluded = { on -> update { toggleCalendar(cal.id, on, calendars) } },
+            onClick = { onOpen(cal.id) },
         )
     }
+    SwitchRow(stringResource(R.string.hide_duplicate_events), global.hideDuplicateEvents) { on -> update { copy(hideDuplicateEvents = on) } }
 }
 
 @Composable
@@ -280,63 +331,127 @@ private fun BirthdaysSection(
     global: GlobalConfig,
     hasContacts: Boolean,
     onNeedContacts: () -> Unit,
+    onOpen: (Page) -> Unit,
     update: (GlobalConfig.() -> GlobalConfig) -> Unit,
 ) {
     SectionTitle(stringResource(R.string.birthdays))
-    SwitchRow(stringResource(R.string.birthdays_from_contacts), global.birthdaysFromContacts) { on ->
-        update { copy(birthdaysFromContacts = on) }
-        if (on && !hasContacts) onNeedContacts()
-    }
-    if (global.birthdaysFromContacts) {
-        CalendarStyleRow(stringResource(R.string.contact_birthdays), null, Color(global.contactBirthdayColor),
-            global.contactBirthdayPattern, { p -> update { copy(contactBirthdayPattern = p) } }, line = null,
-            sourceColor = CONTACT_BIRTHDAY_COLOR, onColor = { c -> update { copy(contactBirthdayColor = c ?: CONTACT_BIRTHDAY_COLOR) } },
-            palette = BIRTHDAY_COLORS)
-    }
-    SwitchRow(stringResource(R.string.birthdays_from_calendar), global.birthdaysFromCalendar) { on -> update { copy(birthdaysFromCalendar = on) } }
-    if (global.birthdaysFromCalendar) {
-        CalendarStyleRow(stringResource(R.string.google_birthdays), null, Color(global.googleBirthdayColor),
-            global.googleBirthdayPattern, { p -> update { copy(googleBirthdayPattern = p) } }, line = null,
-            sourceColor = GooglePalette.BIRTHDAY, onColor = { c -> update { copy(googleBirthdayColor = c ?: GooglePalette.BIRTHDAY) } },
-            palette = BIRTHDAY_COLORS)
-    }
+    StyleListRow(
+        title = stringResource(R.string.contact_birthdays),
+        summary = styleSummary(global.contactBirthdayPattern, null),
+        color = global.contactBirthdayColor,
+        included = global.birthdaysFromContacts,
+        onIncluded = { on ->
+            update { copy(birthdaysFromContacts = on) }
+            if (on && !hasContacts) onNeedContacts()
+        },
+        onClick = { onOpen(Page.ContactBirthdays) },
+    )
+    StyleListRow(
+        title = stringResource(R.string.google_birthdays),
+        summary = styleSummary(global.googleBirthdayPattern, null),
+        color = global.googleBirthdayColor,
+        included = global.birthdaysFromCalendar,
+        onIncluded = { on -> update { copy(birthdaysFromCalendar = on) } },
+        onClick = { onOpen(Page.GoogleBirthdays) },
+    )
     if (global.birthdaysFromContacts && global.birthdaysFromCalendar) {
         SwitchRow(stringResource(R.string.hide_duplicate_birthdays), global.hideDuplicateBirthdays) { on -> update { copy(hideDuplicateBirthdays = on) } }
     }
 }
 
-/** FR-D5: Google holiday calendars are recognised; others can be marked by hand. */
 @Composable
-private fun HolidaysSection(global: GlobalConfig, calendars: List<CalendarInfo>, update: (GlobalConfig.() -> GlobalConfig) -> Unit) {
-    val markable = calendars.filter { !it.isBirthdays }
-    if (markable.isEmpty()) return
-    SectionTitle(stringResource(R.string.holiday_calendars))
-    markable.forEach { cal ->
+private fun styleSummary(fill: ChipPattern, line: LineStyle?): String =
+    listOfNotNull(stringResource(patternName(fill)), line?.let { stringResource(lineName(it)) }).joinToString(" · ")
+
+/** A calendar or birthday source in the list: checkbox, name, style summary, colour. Tap opens its page. */
+@Composable
+private fun StyleListRow(title: String, summary: String, color: Int, included: Boolean, onIncluded: (Boolean) -> Unit, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(included, onCheckedChange = onIncluded)
+        Column(Modifier.weight(1f)) {
+            Text(title)
+            Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Box(Modifier.size(24.dp).clip(CircleShape).background(Color(color)))
+        Text("›", Modifier.padding(start = 12.dp, end = 4.dp), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** A calendar's (or birthday source's) own page: sample, colour, fill and outline. */
+@Composable
+private fun StylePage(
+    title: String,
+    subtitle: String?,
+    color: Int,
+    sourceColor: Int,
+    colors: List<Int>,
+    fill: ChipPattern,
+    line: LineStyle?,
+    onColor: (Int?) -> Unit,
+    onFill: (ChipPattern) -> Unit,
+    onBack: () -> Unit,
+    onLine: (LineStyle) -> Unit = {},
+    included: Boolean? = null,
+    onIncluded: (Boolean) -> Unit = {},
+) {
+    Column(Modifier.safeDrawingPadding().padding(16.dp).verticalScroll(rememberScrollState())) {
+        TextButton(onClick = onBack) { Text("‹ " + stringResource(R.string.back)) }
+        Text(title, style = MaterialTheme.typography.headlineSmall)
+        subtitle?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+
+        // How entries of this calendar look in the widget.
+        Row(Modifier.padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val onFilled = if (fill == ChipPattern.NONE) Color.White else MaterialTheme.colorScheme.onSurface
+            Text(
+                stringResource(R.string.sample_all_day), color = onFilled, style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.clip(RoundedCornerShape(3.dp)).chipFill(Color(color), fill).padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+            if (line != null) {
+                Text(
+                    stringResource(R.string.sample_timed), style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.chipOutline(Color(color), line).padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+            }
+        }
+        included?.let { SwitchRow(stringResource(R.string.show_by_default), it, onIncluded) }
+
+        SectionTitle(stringResource(R.string.color))
+        ColorChoice(colors, color) { onColor(if (it == sourceColor) null else it) }
         Row(
-            Modifier.fillMaxWidth().clickable(enabled = !cal.autoHoliday) {
-                update { copy(extraHolidayCalendarIds = if (cal.id in extraHolidayCalendarIds) extraHolidayCalendarIds - cal.id else extraHolidayCalendarIds + cal.id) }
-            },
+            Modifier.fillMaxWidth().padding(top = 12.dp).clip(RoundedCornerShape(8.dp)).clickable { onColor(null) }.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Checkbox(cal.isHoliday, onCheckedChange = null, enabled = !cal.autoHoliday, modifier = Modifier.padding(8.dp))
-            Text(cal.name)
+            Box(Modifier.size(24.dp).clip(CircleShape).background(Color(sourceColor)))
+            Text(stringResource(R.string.reset_calendar_color), Modifier.padding(start = 12.dp))
         }
-    }
-    val holidayCalendars = calendars.filter { it.isHoliday }
-    if (holidayCalendars.size > 1) {
-        SwitchRow(stringResource(R.string.hide_duplicate_holidays), global.hideDuplicateHolidays) { on -> update { copy(hideDuplicateHolidays = on) } }
-    }
-    // The preferred calendar decides which duplicate stays, so it only matters when hiding.
-    if (holidayCalendars.size > 1 && global.hideDuplicateHolidays) {
-        Text(stringResource(R.string.preferred_holiday_calendar), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.labelLarge)
-        val preferred = global.preferredHolidayCalendarId ?: holidayCalendars.minOf { it.id }
-        holidayCalendars.forEach { cal ->
-            Row(Modifier.fillMaxWidth().clickable { update { copy(preferredHolidayCalendarId = cal.id) } }, verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(cal.id == preferred, onClick = null, modifier = Modifier.padding(8.dp))
-                Text(cal.name)
+
+        SectionTitle(stringResource(R.string.fill))
+        ChipPattern.entries.forEach { p ->
+            OptionRow(selected = p == fill, onClick = { onFill(p) }, label = stringResource(patternName(p))) { FillSwatch(Color(color), p) }
+        }
+        if (line != null) {
+            SectionTitle(stringResource(R.string.outline))
+            LineStyle.entries.forEach { l ->
+                OptionRow(selected = l == line, onClick = { onLine(l) }, label = stringResource(lineName(l))) { LineSwatch(Color(color), l) }
             }
         }
     }
+}
+
+@Composable
+private fun OptionRow(selected: Boolean, onClick: () -> Unit, label: String, swatch: @Composable () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(selected, onClick = null, modifier = Modifier.padding(end = 12.dp))
+        swatch()
+        Text(label, Modifier.padding(start = 12.dp))
+    }
+}
+
+/** Ticks or unticks a calendar in the default selection (null = all). */
+private fun GlobalConfig.toggleCalendar(id: Long, on: Boolean, calendars: List<CalendarInfo>): GlobalConfig {
+    val all = calendars.map { it.id }.toSet()
+    val next = if (on) (calendarIds ?: all) + id else (calendarIds ?: all) - id
+    return copy(calendarIds = if (next.containsAll(all)) null else next)
 }
 
 /** Stores [value] for [key], dropping the entry when it is the [default]. */

@@ -26,19 +26,15 @@ data class GlobalConfig(
     /** null = all visible calendars. */
     val calendarIds: Set<Long>? = null,
     /**
-     * Show one holiday per day when several holiday calendars have it (FR-D5).
-     * Off by default, so holidays look as in Google Calendar.
+     * Show an event once when it is in several calendars (FR-D5). Off by
+     * default, so the widget shows what Google Calendar shows.
      */
-    val hideDuplicateHolidays: Boolean = false,
+    val hideDuplicateEvents: Boolean = false,
     /**
      * Show a person's birthday once when it is in Contacts and Google Calendar
      * (FR-B1). Off by default, so both sources stay visible for cleaning up.
      */
     val hideDuplicateBirthdays: Boolean = false,
-    /** null = holiday calendar with the lowest ID (spec D-4). */
-    val preferredHolidayCalendarId: Long? = null,
-    /** Calendars the user marked as holiday calendars, besides Google's (FR-D5). */
-    val extraHolidayCalendarIds: Set<Long> = emptySet(),
     val birthdaysFromContacts: Boolean = true,
     val birthdaysFromCalendar: Boolean = true,
     /** Birthdays from Contacts (FR-B7). */
