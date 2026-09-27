@@ -83,4 +83,6 @@
     <string name="done">Fertig</string>
     <string name="calendars_all_widgets">Kalender (alle Widgets)</string>
     <string name="calendars_hint">Anhaken, um einen Kalender standardmäßig zu zeigen. Punkt antippen, um die Farbe zu ändern.</string>
+    <string name="hide_duplicate_holidays">Doppelte Feiertage ausblenden</string>
+    <string name="hide_duplicate_birthdays">Doppelte Geburtstage ausblenden</string>
 </resources>

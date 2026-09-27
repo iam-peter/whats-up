@@ -300,6 +300,9 @@ private fun BirthdaysSection(
             sourceColor = GooglePalette.BIRTHDAY, onColor = { c -> update { copy(googleBirthdayColor = c ?: GooglePalette.BIRTHDAY) } },
             palette = BIRTHDAY_COLORS)
     }
+    if (global.birthdaysFromContacts && global.birthdaysFromCalendar) {
+        SwitchRow(stringResource(R.string.hide_duplicate_birthdays), global.hideDuplicateBirthdays) { on -> update { copy(hideDuplicateBirthdays = on) } }
+    }
 }
 
 /** FR-D5: Google holiday calendars are recognised; others can be marked by hand. */
@@ -321,6 +324,10 @@ private fun HolidaysSection(global: GlobalConfig, calendars: List<CalendarInfo>,
     }
     val holidayCalendars = calendars.filter { it.isHoliday }
     if (holidayCalendars.size > 1) {
+        SwitchRow(stringResource(R.string.hide_duplicate_holidays), global.hideDuplicateHolidays) { on -> update { copy(hideDuplicateHolidays = on) } }
+    }
+    // The preferred calendar decides which duplicate stays, so it only matters when hiding.
+    if (holidayCalendars.size > 1 && global.hideDuplicateHolidays) {
         Text(stringResource(R.string.preferred_holiday_calendar), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.labelLarge)
         val preferred = global.preferredHolidayCalendarId ?: holidayCalendars.minOf { it.id }
         holidayCalendars.forEach { cal ->

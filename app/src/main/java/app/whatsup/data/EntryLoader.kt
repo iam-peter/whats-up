@@ -3,6 +3,7 @@ package app.whatsup.data
 import android.content.Context
 import app.whatsup.config.AppConfig
 import app.whatsup.logic.BirthdayRules
+import app.whatsup.logic.BirthdayMerger
 import app.whatsup.logic.ColorOverrides
 import app.whatsup.logic.HolidayDeduplicator
 import app.whatsup.logic.PatternAssigner
@@ -37,9 +38,10 @@ class EntryLoader(context: Context) {
             }
         } else emptyList()
         val fromCalendar = if (global.birthdaysFromCalendar) calendarBirthdays.map { it.copy(color = global.googleBirthdayColor) } else emptyList()
-        // Not merged: both sources stay visible, so duplicates can be cleaned up (FR-B1).
-        val birthdays = contactBirthdays + fromCalendar
-        val styled = ColorOverrides.apply(HolidayDeduplicator.apply(events, global.preferredHolidayCalendarId), global)
+        // Both sources stay visible unless the user hides duplicates (FR-B1).
+        val birthdays = if (global.hideDuplicateBirthdays) BirthdayMerger.merge(contactBirthdays, fromCalendar) else contactBirthdays + fromCalendar
+        val holidays = if (global.hideDuplicateHolidays) HolidayDeduplicator.apply(events, global.preferredHolidayCalendarId) else events
+        val styled = ColorOverrides.apply(holidays, global)
         return PatternAssigner.assign(styled + birthdays, global)
     }
 }

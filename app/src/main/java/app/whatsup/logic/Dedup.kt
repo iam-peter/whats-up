@@ -35,6 +35,23 @@ object HolidayDeduplicator {
     }
 }
 
+object BirthdayMerger {
+    /**
+     * Spec FR-B1 (optional): for the same person and day, the contact
+     * birthday wins over Google Calendar's entry, because it carries the age.
+     * A Google entry counts as the same person if its title contains the
+     * contact's name, e.g. "Anna Muster's birthday".
+     */
+    fun merge(fromContacts: List<CalendarEntry>, fromCalendar: List<CalendarEntry>): List<CalendarEntry> {
+        val contactNames = fromContacts.groupBy({ it.firstDay }, { normalize(it.title) })
+        val calendarOnly = fromCalendar.filterNot { e ->
+            val title = normalize(e.title)
+            contactNames[e.firstDay].orEmpty().any { it.isNotEmpty() && title.contains(it) }
+        }
+        return fromContacts + calendarOnly
+    }
+}
+
 object ColorOverrides {
     /**
      * Spec FR-E4a: a calendar colour chosen in whats-up replaces the source

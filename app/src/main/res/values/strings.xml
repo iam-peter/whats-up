@@ -84,4 +84,6 @@
     <string name="done">Done</string>
     <string name="calendars_all_widgets">Calendars (all widgets)</string>
     <string name="calendars_hint">Tick to show a calendar by default. Tap the dot to change its colour.</string>
+    <string name="hide_duplicate_holidays">Hide duplicate holidays</string>
+    <string name="hide_duplicate_birthdays">Hide duplicate birthdays</string>
 </resources>

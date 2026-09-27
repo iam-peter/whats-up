@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.12
+Version: v1.13
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -240,7 +240,7 @@ combinations the presets offer.
   can override (Q-15).
 - **FR-D4** Declined events (`SELF_ATTENDEE_STATUS = DECLINED`) and
   cancelled events (`STATUS = CANCELED`) are **hidden** (Q-14).
-- **FR-D5** De-duplication (Q-13): on the same day, all-day entries that
+- **FR-D5** De-duplication (Q-13; optional since v1.13, "Hide duplicate holidays", **off** by default so holidays look as in Google Calendar): on the same day, all-day entries that
   come from calendars classified as *holiday calendars* are merged if
   their normalised titles match, or if both calendars mark the date as a
   public holiday. The entry from the calendar that is first in the user's
@@ -265,8 +265,10 @@ combinations the presets offer.
     calendars and are marked with the extended property
     `shared:calendarProviderEventType = BIRTHDAY`.
 
-  The sources are **kept apart** (v1.8, replaces Q-09's de-duplication):
-  a person in both shows up twice, so the user can see what to clean up.
+  The sources are **kept apart** by default (v1.8): a person in both shows
+  up twice, so the user can see what to clean up. "Hide duplicate
+  birthdays" (v1.13, off by default) keeps only the contact entry when a
+  Google entry's title contains the contact's name.
   Raw contacts of one person are still merged by lookup key. Anniversaries
   and other contact dates are ignored (Q-12).
 - **FR-B2** Display (Q-10a): a monochrome cake icon (Material Icons
@@ -544,5 +546,6 @@ figures must be validated against primary sources before external use.
 | v1.10 | 27 September 2026 | Henning Gründl | M2 layouts: month grid, agenda, upcoming birthdays, next up with countdown; "+N" in the day header — generated with Claude AI |
 | v1.11 | 27 September 2026 | Henning Gründl | M3 layouts: week and day timelines, week + agenda, next up + birthdays — generated with Claude AI |
 | v1.12 | 27 September 2026 | Henning Gründl | App and widget settings merged into one screen (FR-C1) — generated with Claude AI |
+| v1.13 | 27 September 2026 | Henning Gründl | "Hide duplicate holidays" and "Hide duplicate birthdays", both off by default (FR-D5, FR-B1) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>
