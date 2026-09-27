@@ -9,6 +9,9 @@ enum class Density { COMPACT, COMFORTABLE }
 enum class BackgroundStyle { PER_CELL, SINGLE }
 enum class WeekendStyle { NONE, TINTED }
 
+/** What a widget shows (spec section 4.1). */
+enum class WidgetLayout { ROLLING_GRID, MONTH_GRID, AGENDA, BIRTHDAYS, NEXT_UP }
+
 /** Pink, as Chronos uses for birthdays. */
 const val CONTACT_BIRTHDAY_COLOR = 0xFFE91E63.toInt()
 
@@ -45,7 +48,10 @@ data class GlobalConfig(
 data class WidgetConfig(
     /** null = use [GlobalConfig.calendarIds]. */
     val calendarIds: Set<Long>? = null,
-    /** null = derived from widget height. */
+    val layout: WidgetLayout = WidgetLayout.ROLLING_GRID,
+    /** Days ahead for the agenda, birthday and next-up layouts. */
+    val lookAheadDays: Int = 14,
+    /** null = derived from widget height (rolling grid). */
     val weeks: Int? = null,
     val textScale: Float = 1f,
     val density: Density = Density.COMPACT,

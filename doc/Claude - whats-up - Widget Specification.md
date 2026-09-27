@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.9
+Version: v1.10
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -153,6 +153,21 @@ stored as `TypedValue` complex values. For example, `43521` = 0xAA01 =
 | `DayTimeline` | M3 | A single day with an hour axis |
 | Combination | M3 | Two blocks stacked, e.g. `DayGrid` above `Agenda` |
 
+**Implemented layouts (M2, v1.10):** each widget picks one in its settings
+("Layout"):
+
+| Layout | Content |
+|---|---|
+| Rolling weeks | `DayGrid` from the first day of the current week (M1) |
+| Month | `MonthGrid`: whole weeks around the current month; days of other months without cell background |
+| Agenda | `Agenda`: scrollable list of the next N days, grouped by day, with time ranges, "All day" or date ranges |
+| Upcoming birthdays | `BirthdayStrip`: the same list, birthdays only, with ages |
+| Next up | `NextUp`: the next 1–3 events (as many as fit), the first one large; a live countdown (a launcher-ticked Chronometer) when it starts within 24 h, "Now, until …" while in progress |
+
+N ("Days ahead") is 7, 14, 30 or 60. The settings preview shows lists
+without scrolling, because RemoteViews collections can't be rendered
+outside a widget host.
+
 **Customisation (Q-29):** users pick from **presets** and adjust
 **per-block settings**. There is no free arrangement of blocks beyond the
 combinations the presets offer.
@@ -191,7 +206,8 @@ combinations the presets offer.
      pixel, with no "…". The text view is laid out wider than the chip so
      it never wraps or ellipsises, and the chip's bounds cut it. (Glance's
      TextViews add "…" whenever a line limit is set.)
-  3. When entries don't fit vertically, replace the rest with "**+N**".
+  3. When entries don't fit vertically, the rest are counted as "**+N**"
+     in the day header next to the date, so no entry line is spent on it.
 - **FR-L5a** Glance allows at most 10 children per `Row`/`Column`. Each
   cell therefore shows at most **8 chips**, plus its header and "+N".
 - **FR-L6** Narrow-cell fallback (Q-23): reduce the inner padding down to
@@ -511,5 +527,6 @@ figures must be validated against primary sources before external use.
 | v1.7 | 27 September 2026 | Henning Gründl | Colours converted to Google's current palette (FR-E4); Google birthday entries recognised (FR-B1); birthday colour setting, green by default (FR-B7) — generated with Claude AI |
 | v1.8 | 27 September 2026 | Henning Gründl | Birthday sources kept apart: contacts pink, Google green, own patterns, no de-duplication (FR-B1, FR-B7, FR-E6) — generated with Claude AI |
 | v1.9 | 27 September 2026 | Henning Gründl | Calendar colour overrides with reset (FR-E4a); day popup next to the tapped day (FR-I1, FR-I2) — generated with Claude AI |
+| v1.10 | 27 September 2026 | Henning Gründl | M2 layouts: month grid, agenda, upcoming birthdays, next up with countdown; "+N" in the day header — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

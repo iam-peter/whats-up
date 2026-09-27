@@ -59,12 +59,15 @@ object UpdateScheduler {
         setWindow(context, ACTION_MIDNIGHT, midnight)
     }
 
-    /** Re-render when the next of today's events ends, so it gets dimmed (FR-E5). */
+    /**
+     * Re-render at the next event start or end: ended events get dimmed
+     * (FR-E5), and the next-up countdown turns into "now".
+     */
     fun scheduleNextBoundary(context: Context, entries: List<CalendarEntry>, now: Instant = Instant.now()) {
-        val today = LocalDate.now()
         val next = entries.asSequence()
-            .filter { it.kind == EntryKind.TIMED && it.occursOn(today) }
-            .mapNotNull { it.end }
+            .filter { it.kind == EntryKind.TIMED }
+            .flatMap { sequenceOf(it.start, it.end) }
+            .filterNotNull()
             .filter { it.isAfter(now) }
             .minOrNull() ?: return
         setWindow(context, ACTION_BOUNDARY, next.toEpochMilli())

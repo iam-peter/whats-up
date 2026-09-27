@@ -40,8 +40,12 @@ data class DayCell(
     val isToday: Boolean,
     val isPast: Boolean,
     val isWeekend: Boolean,
-    /** In a month after today's: drawn without a cell background, like Chronos. */
-    val isNextMonth: Boolean,
+    /**
+     * Outside the month in focus: after today's month in the rolling grid,
+     * outside the shown month in the month grid. Drawn without a cell
+     * background, like Chronos.
+     */
+    val isOtherMonth: Boolean,
     /** Only set in the first row (Chronos behaviour). */
     val weekdayLabel: String?,
     val chips: List<Chip>,

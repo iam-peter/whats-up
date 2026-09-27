@@ -42,6 +42,7 @@ import app.whatsup.R
 import app.whatsup.config.BackgroundStyle
 import app.whatsup.config.WeekendStyle
 import app.whatsup.config.WidgetConfig
+import app.whatsup.config.WidgetLayout
 import app.whatsup.logic.Chip
 import app.whatsup.logic.ChipStyle
 import app.whatsup.logic.ChipTarget
@@ -49,6 +50,9 @@ import app.whatsup.logic.DayCell
 import app.whatsup.logic.GridMetrics
 import app.whatsup.logic.GridModel
 import app.whatsup.logic.GridModelBuilder
+import app.whatsup.logic.GridRange
+import app.whatsup.logic.ListBuilder
+import app.whatsup.logic.NextUpBuilder
 import app.whatsup.logic.SpanBar
 import app.whatsup.logic.Week
 import app.whatsup.model.CalendarEntry
@@ -56,6 +60,7 @@ import app.whatsup.model.ChipPattern
 import app.whatsup.model.LineStyle
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.temporal.WeekFields
 
 data class WidgetState(
@@ -66,6 +71,8 @@ data class WidgetState(
     val now: Instant,
     /** Passed to the in-app day view, so it shows this widget's calendars. */
     val appWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID,
+    /** Rendered in the settings preview, which can't show scrollable lists. */
+    val isPreview: Boolean = false,
 )
 
 fun widgetCornerRadiusDp(context: Context): Float {
@@ -83,17 +90,30 @@ fun WidgetContent(state: WidgetState) {
         PermissionPrompt(palette)
         return
     }
-    val model = GridModelBuilder(StaticLayoutMeasurer(context), AndroidLabels(context)).build(
-        entries = state.entries,
-        today = state.today,
-        now = state.now,
-        firstDayOfWeek = WeekFields.of(context.resources.configuration.locales[0]).firstDayOfWeek,
-        widthDp = size.width.value,
-        heightDp = size.height.value,
-        cfg = state.config,
-        cornerRadiusDp = widgetCornerRadiusDp(context),
-    )
-    DayGrid(model, state, palette)
+    val labels = AndroidLabels(context)
+    val cfg = state.config
+    val fdow = WeekFields.of(context.resources.configuration.locales[0]).firstDayOfWeek
+    val grid = GridModelBuilder(StaticLayoutMeasurer(context), labels)
+    when (cfg.layout) {
+        WidgetLayout.ROLLING_GRID -> DayGrid(
+            grid.build(state.entries, state.today, state.now, fdow, size.width.value, size.height.value, cfg, widgetCornerRadiusDp(context)),
+            state, palette,
+        )
+        WidgetLayout.MONTH_GRID -> DayGrid(
+            grid.buildDays(
+                state.entries, state.today, state.now, GridRange.monthDays(state.today, fdow),
+                size.width.value, size.height.value, cfg, widgetCornerRadiusDp(context), YearMonth.from(state.today),
+            ),
+            state, palette,
+        )
+        WidgetLayout.AGENDA -> ListView(
+            ListBuilder(labels).build(state.entries, state.today, state.now, cfg.lookAheadDays, cfg, birthdaysOnly = false), state, palette,
+        )
+        WidgetLayout.BIRTHDAYS -> ListView(
+            ListBuilder(labels).build(state.entries, state.today, state.now, cfg.lookAheadDays, cfg, birthdaysOnly = true), state, palette,
+        )
+        WidgetLayout.NEXT_UP -> NextUpView(NextUpBuilder(labels).build(state.entries, state.today, state.now, max = 3), state, palette)
+    }
 }
 
 @Composable
@@ -154,7 +174,7 @@ private fun DayBackground(cell: DayCell, state: WidgetState, m: GridMetrics, pal
     var body = GlanceModifier.fillMaxSize()
     val tintWeekend = cfg.weekendStyle == WeekendStyle.TINTED && cell.isWeekend
     // Days of the next month have no cell background, as in the Chronos month widget.
-    if ((cfg.background == BackgroundStyle.PER_CELL && !cell.isNextMonth) || tintWeekend) {
+    if ((cfg.background == BackgroundStyle.PER_CELL && !cell.isOtherMonth) || tintWeekend) {
         body = body.background(if (tintWeekend) palette.weekendCell else palette.cell).cornerRadius(4.dp)
     }
     body = body
@@ -180,6 +200,11 @@ private fun DayHeader(cell: DayCell, m: GridMetrics, palette: WidgetPalette, mod
             Text(it, style = TextStyle(color = textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Medium))
         }
         Spacer(GlanceModifier.defaultWeight())
+        // "+N" sits next to the date, so every entry line is used for entries.
+        cell.moreText?.let {
+            Text(it, style = TextStyle(color = palette.onCellDim, fontSize = (m.textSp * 0.9f).sp, fontWeight = FontWeight.Bold))
+            Spacer(GlanceModifier.width(3.dp))
+        }
         Text(
             cell.date.dayOfMonth.toString(),
             style = TextStyle(color = if (cell.isToday) palette.accent else textColor, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
@@ -211,18 +236,8 @@ private fun LaneRow(bars: List<SpanBar>, weekNumberColumn: @Composable () -> Uni
 
 @Composable
 private fun DayEntries(cell: DayCell, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
-    val context = LocalContext.current
     Column(modifier) {
         cell.chips.forEach { ChipView(it, state, m, palette) }
-        cell.moreText?.let {
-            Text(
-                it,
-                modifier = GlanceModifier.fillMaxWidth()
-                    .height(m.lineHeightDp.dp)
-                    .padding(horizontal = m.chipHPaddingDp.dp),
-                style = TextStyle(color = palette.onCellDim, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
-            )
-        }
     }
 }
 
@@ -287,7 +302,7 @@ private fun ChipView(chip: Chip, state: WidgetState, m: GridMetrics, palette: Wi
  * one (explicit intent, so allowed): the launcher adds the tapped bounds and
  * the popup can open next to the day (FR-I2).
  */
-private fun dayTapTarget(context: Context, date: LocalDate, appWidgetId: Int): RemoteViews {
+internal fun dayTapTarget(context: Context, date: LocalDate, appWidgetId: Int): RemoteViews {
     val pending = PendingIntent.getActivity(
         context, 0, Intents.inAppDay(context, date, appWidgetId),
         PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,

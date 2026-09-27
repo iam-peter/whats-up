@@ -71,4 +71,15 @@
     <string name="close">Close</string>
     <string name="calendar_styles">Calendar styles</string>
     <string name="popup_next_to_day">Day popup next to the tapped day</string>
+    <string name="all_day">All day</string>
+    <string name="now_until">Now, until %1$s</string>
+    <string name="nothing_coming_up">Nothing coming up</string>
+    <string name="countdown_format">in %s</string>
+    <string name="layout">Layout</string>
+    <string name="layout_rolling">Rolling weeks</string>
+    <string name="layout_month">Month</string>
+    <string name="layout_agenda">Agenda</string>
+    <string name="layout_birthdays">Upcoming birthdays</string>
+    <string name="layout_next_up">Next up</string>
+    <string name="days_ahead">Days ahead</string>
 </resources>

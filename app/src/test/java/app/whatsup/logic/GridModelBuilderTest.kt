@@ -28,6 +28,11 @@ class GridModelBuilderTest {
         override fun time(instant: Instant) = instant.atOffset(ZoneOffset.UTC).let { "%d:%02d".format(it.hour, it.minute) }
         override fun dayDescription(date: LocalDate, isToday: Boolean, entries: List<String>, hidden: Int) = "$date"
         override fun birthdayText(name: String, age: Int?) = if (age != null) "$name ($age)" else name
+        override fun dayLabel(date: LocalDate, today: LocalDate) = "$date"
+        override fun timeRange(start: Instant, end: Instant) = "${time(start)}–${time(end)}"
+        override fun allDay() = "All day"
+        override fun dateRange(first: LocalDate, last: LocalDate) = "$first–$last"
+        override fun ongoingUntil(end: Instant) = "Now"
     }
     private val builder = GridModelBuilder(measurer, labels)
     private val today = LocalDate.of(2026, 9, 24) // Thursday
@@ -159,8 +164,8 @@ class GridModelBuilderTest {
 
     @Test fun `days of the next month are marked`() {
         val model = build(emptyList())
-        assertFalse(model.day(1, 2).isNextMonth) // 30 September
-        assertTrue(model.day(1, 3).isNextMonth)  // 1 October
+        assertFalse(model.day(1, 2).isOtherMonth) // 30 September
+        assertTrue(model.day(1, 3).isOtherMonth)  // 1 October
     }
 
     @Test fun `every chip opens the day popup`() {
@@ -176,5 +181,13 @@ class GridModelBuilderTest {
         val chips = build(entries, w = 800f).day(0, 3).chips
         assertEquals(listOf("2 birthdays", "Anna's birthday"), chips.map { it.description })
         assertEquals(1, chips[1].color)
+    }
+
+    @Test fun `month grid marks days outside the month`() {
+        val days = GridRange.monthDays(today, DayOfWeek.MONDAY)
+        val model = builder.buildDays(emptyList(), today, now, days, 400f, 400f, WidgetConfig(), focusMonth = java.time.YearMonth.from(today))
+        assertTrue(model.day(0, 0).isOtherMonth)  // 31 August
+        assertFalse(model.day(0, 1).isOtherMonth) // 1 September
+        assertTrue(model.weeks.last().days.last().isOtherMonth) // 4 October
     }
 }

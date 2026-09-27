@@ -6,10 +6,11 @@ fixes its rendering problems and makes the layout more configurable.
 
 ## Features
 
-- **Rolling day grid:** starts at the beginning of the current week; the
-  number of weeks follows the widget height (1–6), down to 170 × 40 dp.
+- **Layouts:** rolling weeks (from the current week; 1–6 weeks by
+  height, down to 170 × 40 dp), month, agenda, upcoming birthdays, and next
+  up with a live countdown.
 - **Dense, readable entries:** one line each, clipped at the chip edge
-  (no "…"); entries that don't fit collapse into "+N".
+  (no "…"); entries that don't fit are counted as "+N" next to the date.
 - **Multi-day events** as one bar across the days they cover.
 - **Birthdays:** from Contacts (pink) and Google Calendar (its birthday
   green), kept apart so duplicates can be spotted, with age and an optional

@@ -10,6 +10,7 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import app.whatsup.config.AppConfig
+import app.whatsup.config.WidgetLayout
 import app.whatsup.config.configStore
 import app.whatsup.data.EntryLoader
 import app.whatsup.data.Permissions
@@ -54,9 +55,15 @@ class WhatsUpWidget : GlanceAppWidget() {
             val today = LocalDate.now()
             val hasPermission = Permissions.hasCalendar(context)
             val fdow = WeekFields.of(context.resources.configuration.locales[0]).firstDayOfWeek
-            val days = GridRange.days(today, fdow, GridRange.MAX_WEEKS)
+            val cfg = config.widget(appWidgetId)
+            // Each layout loads only the days it can show.
+            val (from, to) = when (cfg.layout) {
+                WidgetLayout.ROLLING_GRID -> GridRange.days(today, fdow, GridRange.MAX_WEEKS).let { it.first() to it.last() }
+                WidgetLayout.MONTH_GRID -> GridRange.monthDays(today, fdow).let { it.first() to it.last() }
+                WidgetLayout.AGENDA, WidgetLayout.BIRTHDAYS, WidgetLayout.NEXT_UP -> today to today.plusDays(cfg.lookAheadDays.toLong())
+            }
             val entries = if (hasPermission) {
-                EntryLoader(context).load(days.first(), days.last(), config, config.calendarIdsFor(appWidgetId))
+                EntryLoader(context).load(from, to, config, config.calendarIdsFor(appWidgetId))
             } else emptyList()
             return WidgetState(hasPermission, entries, config.widget(appWidgetId), today, Instant.now(), appWidgetId)
         }

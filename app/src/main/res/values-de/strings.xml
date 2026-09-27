@@ -70,4 +70,15 @@
     <string name="close">Schließen</string>
     <string name="calendar_styles">Kalenderdarstellung</string>
     <string name="popup_next_to_day">Tagesansicht neben dem angetippten Tag</string>
+    <string name="all_day">Ganztägig</string>
+    <string name="now_until">Jetzt, bis %1$s</string>
+    <string name="nothing_coming_up">Nichts geplant</string>
+    <string name="countdown_format">in %s</string>
+    <string name="layout">Layout</string>
+    <string name="layout_rolling">Laufende Wochen</string>
+    <string name="layout_month">Monat</string>
+    <string name="layout_agenda">Terminliste</string>
+    <string name="layout_birthdays">Nächste Geburtstage</string>
+    <string name="layout_next_up">Als Nächstes</string>
+    <string name="days_ahead">Tage im Voraus</string>
 </resources>

@@ -38,6 +38,7 @@ import app.whatsup.config.BackgroundStyle
 import app.whatsup.config.Density
 import app.whatsup.config.WeekendStyle
 import app.whatsup.config.WidgetConfig
+import app.whatsup.config.WidgetLayout
 import app.whatsup.config.configStore
 import app.whatsup.data.CalendarRepository
 import app.whatsup.update.UpdateScheduler
@@ -94,7 +95,7 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
     LaunchedEffect(appConfig, cfg) {
         val base = appConfig ?: return@LaunchedEffect
         val withDraft = base.copy(widgets = base.widgets + (appWidgetId to cfg))
-        preview = withContext(Dispatchers.IO) { WhatsUpWidget.loadState(context, withDraft, appWidgetId) }
+        preview = withContext(Dispatchers.IO) { WhatsUpWidget.loadState(context, withDraft, appWidgetId).copy(isPreview = true) }
     }
 
     Column(Modifier.safeDrawingPadding().padding(16.dp)) {
@@ -105,9 +106,28 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
             preview?.let { WidgetPreview(it, size) }
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-            SectionTitle(stringResource(R.string.weeks))
-            ChoiceRow(listOf<Pair<Int?, String>>(null to stringResource(R.string.auto)) + (1..6).map { it to it.toString() },
-                cfg.weeks) { cfg = cfg.copy(weeks = it) }
+            SectionTitle(stringResource(R.string.layout))
+            val layoutNames = mapOf(
+                WidgetLayout.ROLLING_GRID to stringResource(R.string.layout_rolling),
+                WidgetLayout.MONTH_GRID to stringResource(R.string.layout_month),
+                WidgetLayout.AGENDA to stringResource(R.string.layout_agenda),
+                WidgetLayout.BIRTHDAYS to stringResource(R.string.layout_birthdays),
+                WidgetLayout.NEXT_UP to stringResource(R.string.layout_next_up),
+            )
+            StyleDropdown(stringResource(R.string.layout), WidgetLayout.entries, cfg.layout, { cfg = cfg.copy(layout = it) },
+                Modifier.fillMaxWidth(), name = { layoutNames.getValue(it) })
+            when (cfg.layout) {
+                WidgetLayout.ROLLING_GRID -> {
+                    SectionTitle(stringResource(R.string.weeks))
+                    ChoiceRow(listOf<Pair<Int?, String>>(null to stringResource(R.string.auto)) + (1..6).map { it to it.toString() },
+                        cfg.weeks) { cfg = cfg.copy(weeks = it) }
+                }
+                WidgetLayout.MONTH_GRID -> Unit
+                else -> {
+                    SectionTitle(stringResource(R.string.days_ahead))
+                    ChoiceRow(listOf(7, 14, 30, 60).map { it to it.toString() }, cfg.lookAheadDays) { cfg = cfg.copy(lookAheadDays = it) }
+                }
+            }
 
             SectionTitle(stringResource(R.string.text_size))
             Slider(cfg.textScale, { cfg = cfg.copy(textScale = it) }, valueRange = 0.8f..1.4f, steps = 5)

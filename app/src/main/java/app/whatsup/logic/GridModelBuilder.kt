@@ -8,6 +8,7 @@ import app.whatsup.model.EntryKind
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
 import kotlin.math.floor
@@ -71,6 +72,26 @@ class GridModelBuilder(
         val provisional = metrics(cfg, narrow = false, cornerRadiusDp)
         val weekCount = (cfg.weeks ?: GridRange.autoWeeks(heightDp - 2 * provisional.outerPaddingDp, TARGET_ROW_HEIGHT_DP))
             .coerceIn(1, GridRange.MAX_WEEKS)
+        return buildDays(entries, today, now, GridRange.days(today, firstDayOfWeek, weekCount), widthDp, heightDp, cfg, cornerRadiusDp, null)
+    }
+
+    /**
+     * Grid for explicit [days] (whole weeks). [focusMonth] is set for the
+     * month grid: days outside it are marked as other-month days.
+     */
+    fun buildDays(
+        entries: List<CalendarEntry>,
+        today: LocalDate,
+        now: Instant,
+        days: List<LocalDate>,
+        widthDp: Float,
+        heightDp: Float,
+        cfg: WidgetConfig,
+        cornerRadiusDp: Float = 0f,
+        focusMonth: YearMonth? = null,
+    ): GridModel {
+        val provisional = metrics(cfg, narrow = false, cornerRadiusDp)
+        val weekCount = days.size / 7
         val cellWidth = (widthDp - 2 * provisional.outerPaddingDp - provisional.weekNumberWidthDp) / 7f
         val m = metrics(cfg, narrow = cellWidth < NARROW_CELL_DP, cornerRadiusDp).copy(cellWidthDp = cellWidth)
         val cellHeight = (heightDp - 2 * m.outerPaddingDp) / weekCount
@@ -78,8 +99,8 @@ class GridModelBuilder(
         val capacity = floor(contentHeight / m.lineHeightDp).toInt().coerceAtLeast(0)
 
         val sorted = entries.sortedWith(entryOrder)
-        val weeks = GridRange.days(today, firstDayOfWeek, weekCount).chunked(7).mapIndexed { index, days ->
-            buildWeek(days, index == 0, sorted, today, now, capacity, m, cfg)
+        val weeks = days.chunked(7).mapIndexed { index, week ->
+            buildWeek(week, index == 0, sorted, today, now, capacity, m, cfg, focusMonth)
         }
         return GridModel(weeks, m, cfg.showWeekNumbers)
     }
@@ -93,6 +114,7 @@ class GridModelBuilder(
         capacity: Int,
         m: GridMetrics,
         cfg: WidgetConfig,
+        focusMonth: YearMonth?,
     ): Week {
         val weekStart = days.first()
         val weekEnd = days.last()
@@ -128,7 +150,7 @@ class GridModelBuilder(
         val laneList = lanes.indices.map { i -> bars.filter { it.first == i }.map { it.second }.sortedBy { it.startColumn } }
         val cellCapacity = capacity - lanes.size
         val cells = days.map { day ->
-            buildCell(day, firstRow, entries.filter { it.occursOn(day) && it !in barred }, today, now, cellCapacity, m, cfg)
+            buildCell(day, firstRow, entries.filter { it.occursOn(day) && it !in barred }, today, now, cellCapacity, m, cfg, focusMonth)
         }
         val weekNumber = if (cfg.showWeekNumbers) weekStart.get(WeekFields.ISO.weekOfWeekBasedYear()) else null
         return Week(cells, laneList, weekNumber)
@@ -143,17 +165,19 @@ class GridModelBuilder(
         capacity: Int,
         m: GridMetrics,
         cfg: WidgetConfig,
+        focusMonth: YearMonth?,
     ): DayCell {
         val isPast = day.isBefore(today)
         val candidates = chipCandidates(day, dayEntries, today, now, isPast, m, cfg)
-        // Every entry is a single line (FR-L5); what doesn't fit becomes "+N".
-        val fit = CellFitter.fit(candidates, capacity, maxLinesPerItem = 1, maxItems = MAX_CHIPS_PER_CELL) { 1 }
+        // Every entry is a single line (FR-L5); what doesn't fit becomes "+N",
+        // shown in the day header so it doesn't take an entry line.
+        val fit = CellFitter.fit(candidates, capacity, maxLinesPerItem = 1, maxItems = MAX_CHIPS_PER_CELL, reserveOverflowLine = false) { 1 }
         return DayCell(
             date = day,
             isToday = day == today,
             isPast = isPast,
             isWeekend = day.dayOfWeek == DayOfWeek.SATURDAY || day.dayOfWeek == DayOfWeek.SUNDAY,
-            isNextMonth = day.isAfter(today) && (day.year > today.year || day.monthValue > today.monthValue),
+            isOtherMonth = if (focusMonth != null) YearMonth.from(day) != focusMonth else YearMonth.from(day) > YearMonth.from(today),
             weekdayLabel = if (firstRow) labels.weekdayInitial(day.dayOfWeek) else null,
             chips = fit.visible.map { it.item },
             moreText = if (fit.hidden > 0) labels.more(fit.hidden) else null,
