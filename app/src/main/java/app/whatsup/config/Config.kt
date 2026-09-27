@@ -10,7 +10,13 @@ enum class BackgroundStyle { PER_CELL, SINGLE }
 enum class WeekendStyle { NONE, TINTED }
 
 /** What a widget shows (spec section 4.1). */
-enum class WidgetLayout { ROLLING_GRID, MONTH_GRID, AGENDA, BIRTHDAYS, NEXT_UP }
+enum class WidgetLayout {
+    ROLLING_GRID, MONTH_GRID, AGENDA, BIRTHDAYS, NEXT_UP,
+    /** M3: time axis. */
+    WEEK_TIMELINE, DAY_TIMELINE,
+    /** M3: two blocks in one widget. */
+    GRID_AGENDA, NEXT_UP_BIRTHDAYS,
+}
 
 /** Pink, as Chronos uses for birthdays. */
 const val CONTACT_BIRTHDAY_COLOR = 0xFFE91E63.toInt()

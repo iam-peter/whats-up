@@ -7,8 +7,9 @@ fixes its rendering problems and makes the layout more configurable.
 ## Features
 
 - **Layouts:** rolling weeks (from the current week; 1–6 weeks by
-  height, down to 170 × 40 dp), month, agenda, upcoming birthdays, and next
-  up with a live countdown.
+  height, down to 170 × 40 dp), month, agenda, upcoming birthdays, next
+  up with a live countdown, week and day timelines, and two combinations
+  (week + agenda, next up + birthdays).
 - **Dense, readable entries:** one line each, clipped at the chip edge
   (no "…"); entries that don't fit are counted as "+N" next to the date.
 - **Multi-day events** as one bar across the days they cover.

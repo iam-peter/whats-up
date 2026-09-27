@@ -53,6 +53,7 @@ import app.whatsup.logic.GridModelBuilder
 import app.whatsup.logic.GridRange
 import app.whatsup.logic.ListBuilder
 import app.whatsup.logic.NextUpBuilder
+import app.whatsup.logic.TimelineBuilder
 import app.whatsup.logic.SpanBar
 import app.whatsup.logic.Week
 import app.whatsup.model.CalendarEntry
@@ -113,17 +114,50 @@ fun WidgetContent(state: WidgetState) {
             ListBuilder(labels).build(state.entries, state.today, state.now, cfg.lookAheadDays, cfg, birthdaysOnly = true), state, palette,
         )
         WidgetLayout.NEXT_UP -> NextUpView(NextUpBuilder(labels).build(state.entries, state.today, state.now, max = 3), state, palette)
+        WidgetLayout.WEEK_TIMELINE, WidgetLayout.DAY_TIMELINE -> {
+            val days = if (cfg.layout == WidgetLayout.DAY_TIMELINE) listOf(state.today) else GridRange.days(state.today, fdow, 1)
+            TimelineView(
+                TimelineBuilder(grid, StaticLayoutMeasurer(context), labels)
+                    .build(state.entries, state.today, state.now, days, size.width.value, size.height.value, cfg, widgetCornerRadiusDp(context)),
+                state, palette,
+            )
+        }
+        // Combined layouts (FR-L2): the second block only when there is room for it.
+        WidgetLayout.GRID_AGENDA -> {
+            val split = size.height.value >= COMBINED_MIN_HEIGHT_DP
+            val gridHeight = if (split) size.height.value * 0.45f else size.height.value
+            val gridCfg = if (split) cfg.copy(weeks = cfg.weeks ?: 1) else cfg
+            Column(combinedRoot(state, palette)) {
+                Box(GlanceModifier.fillMaxWidth().height(gridHeight.dp)) {
+                    DayGrid(grid.build(state.entries, state.today, state.now, fdow, size.width.value, gridHeight, gridCfg, 0f), state, palette, root = false)
+                }
+                if (split) Box(GlanceModifier.fillMaxWidth().defaultWeight()) {
+                    ListView(ListBuilder(labels).build(state.entries, state.today, state.now, cfg.lookAheadDays, cfg, birthdaysOnly = false), state, palette, root = false)
+                }
+            }
+        }
+        WidgetLayout.NEXT_UP_BIRTHDAYS -> {
+            val split = size.height.value >= COMBINED_MIN_HEIGHT_DP
+            Column(combinedRoot(state, palette)) {
+                Box(GlanceModifier.fillMaxWidth().then(if (split) GlanceModifier.height((size.height.value * 0.5f).dp) else GlanceModifier.defaultWeight())) {
+                    NextUpView(NextUpBuilder(labels).build(state.entries, state.today, state.now, max = 3), state, palette, root = false)
+                }
+                if (split) Box(GlanceModifier.fillMaxWidth().defaultWeight()) {
+                    ListView(ListBuilder(labels).build(state.entries, state.today, state.now, cfg.lookAheadDays, cfg, birthdaysOnly = true), state, palette, root = false)
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette) {
+private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette, root: Boolean = true) {
     val m = model.metrics
-    var root = GlanceModifier.fillMaxSize()
-        .appWidgetBackground()
-        .cornerRadius(android.R.dimen.system_app_widget_background_radius)
-    if (state.config.background == BackgroundStyle.SINGLE) root = root.background(palette.background)
-    Column(root.padding(m.outerPaddingDp.dp)) {
+    var modifier = GlanceModifier.fillMaxSize()
+    if (root) modifier = modifier.appWidgetBackground().cornerRadius(android.R.dimen.system_app_widget_background_radius)
+    var rootModifier = modifier
+    if (state.config.background == BackgroundStyle.SINGLE) rootModifier = rootModifier.background(palette.background)
+    Column(rootModifier.padding(m.outerPaddingDp.dp)) {
         model.weeks.forEach { week ->
             WeekView(week, model.showWeekNumbers, state, m, palette, GlanceModifier.fillMaxWidth().defaultWeight())
         }
@@ -242,7 +276,7 @@ private fun DayEntries(cell: DayCell, state: WidgetState, m: GridMetrics, palett
 }
 
 @Composable
-private fun ChipView(chip: Chip, state: WidgetState, m: GridMetrics, palette: WidgetPalette, rounded: Boolean = true) {
+internal fun ChipView(chip: Chip, state: WidgetState, m: GridMetrics, palette: WidgetPalette, rounded: Boolean = true, fill: Boolean = false) {
     val context = LocalContext.current
     // Glance has no border or pattern modifiers, so both are tinted drawables (FR-E6).
     val fillPattern = patternDrawable(chip.pattern, chip.dimmed)
@@ -277,7 +311,8 @@ private fun ChipView(chip: Chip, state: WidgetState, m: GridMetrics, palette: Wi
         }
     }
     // The outer Box keeps chip + spacing as one child (Glance allows 10 per Column).
-    Box(GlanceModifier.fillMaxWidth().padding(bottom = 1.dp)) {
+    // In a timeline the chip fills its box, so its height shows the duration.
+    Box(GlanceModifier.fillMaxWidth().then(if (fill) GlanceModifier.fillMaxHeight() else GlanceModifier).padding(bottom = 1.dp)) {
         if (chip.icon) {
             Row(chipModifier, verticalAlignment = Alignment.CenterVertically) {
                 // Monochrome cake, tinted like the text (FR-B2).
@@ -290,6 +325,8 @@ private fun ChipView(chip: Chip, state: WidgetState, m: GridMetrics, palette: Wi
                 Spacer(GlanceModifier.width(m.iconGapDp.dp))
                 text(GlanceModifier.defaultWeight().height(textHeight))
             }
+        } else if (fill) {
+            Box(chipModifier.fillMaxHeight(), contentAlignment = Alignment.TopStart) { text(GlanceModifier.height(textHeight)) }
         } else {
             text(chipModifier.height(textHeight + (2 * m.chipVPaddingDp).dp))
         }
@@ -310,6 +347,17 @@ internal fun dayTapTarget(context: Context, date: LocalDate, appWidgetId: Int): 
     return RemoteViews(context.packageName, R.layout.day_tap_target).apply {
         setOnClickPendingIntent(R.id.tap_target, pending)
     }
+}
+
+/** Below this height a combined layout shows only its first block (FR-L2). */
+private const val COMBINED_MIN_HEIGHT_DP = 180f
+
+/** Background and rounded outline around both blocks of a combined layout. */
+@Composable
+private fun combinedRoot(state: WidgetState, palette: WidgetPalette): GlanceModifier {
+    var modifier = GlanceModifier.fillMaxSize().appWidgetBackground().cornerRadius(android.R.dimen.system_app_widget_background_radius)
+    if (state.config.background == BackgroundStyle.SINGLE) modifier = modifier.background(palette.background)
+    return modifier
 }
 
 /** Wider than any chip; see [ChipView]. */

@@ -81,4 +81,8 @@
     <string name="layout_birthdays">Nächste Geburtstage</string>
     <string name="layout_next_up">Als Nächstes</string>
     <string name="days_ahead">Tage im Voraus</string>
+    <string name="layout_week_timeline">Wochen-Zeitleiste</string>
+    <string name="layout_day_timeline">Tages-Zeitleiste</string>
+    <string name="layout_grid_agenda">Woche + Terminliste</string>
+    <string name="layout_next_up_birthdays">Als Nächstes + Geburtstage</string>
 </resources>

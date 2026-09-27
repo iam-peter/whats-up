@@ -113,6 +113,10 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
                 WidgetLayout.AGENDA to stringResource(R.string.layout_agenda),
                 WidgetLayout.BIRTHDAYS to stringResource(R.string.layout_birthdays),
                 WidgetLayout.NEXT_UP to stringResource(R.string.layout_next_up),
+                WidgetLayout.WEEK_TIMELINE to stringResource(R.string.layout_week_timeline),
+                WidgetLayout.DAY_TIMELINE to stringResource(R.string.layout_day_timeline),
+                WidgetLayout.GRID_AGENDA to stringResource(R.string.layout_grid_agenda),
+                WidgetLayout.NEXT_UP_BIRTHDAYS to stringResource(R.string.layout_next_up_birthdays),
             )
             StyleDropdown(stringResource(R.string.layout), WidgetLayout.entries, cfg.layout, { cfg = cfg.copy(layout = it) },
                 Modifier.fillMaxWidth(), name = { layoutNames.getValue(it) })
@@ -122,7 +126,7 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
                     ChoiceRow(listOf<Pair<Int?, String>>(null to stringResource(R.string.auto)) + (1..6).map { it to it.toString() },
                         cfg.weeks) { cfg = cfg.copy(weeks = it) }
                 }
-                WidgetLayout.MONTH_GRID -> Unit
+                WidgetLayout.MONTH_GRID, WidgetLayout.WEEK_TIMELINE, WidgetLayout.DAY_TIMELINE -> Unit
                 else -> {
                     SectionTitle(stringResource(R.string.days_ahead))
                     ChoiceRow(listOf(7, 14, 30, 60).map { it to it.toString() }, cfg.lookAheadDays) { cfg = cfg.copy(lookAheadDays = it) }

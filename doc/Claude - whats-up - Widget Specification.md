@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.10
+Version: v1.11
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -163,6 +163,16 @@ stored as `TypedValue` complex values. For example, `43521` = 0xAA01 =
 | Agenda | `Agenda`: scrollable list of the next N days, grouped by day, with time ranges, "All day" or date ranges |
 | Upcoming birthdays | `BirthdayStrip`: the same list, birthdays only, with ages |
 | Next up | `NextUp`: the next 1–3 events (as many as fit), the first one large; a live countdown (a launcher-ticked Chronometer) when it starts within 24 h, "Now, until …" while in progress |
+
+| Week timeline | `WeekColumns` (M3, v1.11): the current week with a time axis; all-day entries in up to two rows at the top, timed events at their time, overlapping ones in up to three lanes, a line at the current time |
+| Day timeline | `DayTimeline` (M3): the same for today |
+| Week + agenda | Combination (M3): one week of the grid above the agenda |
+| Next up + birthdays | Combination (M3): the next events above upcoming birthdays |
+
+The timelines show 8–18 h, widened to the events shown (at least 6 hours).
+Glance has no absolute positioning, so the builder places events in dp
+and each lane is a column of spacers and event boxes. Combined layouts
+show only their first block when the widget is lower than 180 dp (FR-L2).
 
 N ("Days ahead") is 7, 14, 30 or 60. The settings preview shows lists
 without scrolling, because RemoteViews collections can't be rendered
@@ -458,9 +468,9 @@ combinations the presets offer.
    - Sizing: 170 × 40 dp minimum.
    - The configuration screen has a live preview.
    - German and English, and full TalkBack support.
-2. **M2 — More blocks.** `MonthGrid`, `Agenda`, `BirthdayStrip`, and
+2. **M2 — More blocks** (done in v1.10). `MonthGrid`, `Agenda`, `BirthdayStrip`, and
    `NextUp`, plus the in-app day/agenda view.
-3. **M3 — Timelines and combinations.** `WeekColumns`, `DayTimeline`,
+3. **M3 — Timelines and combinations** (done in v1.11). `WeekColumns`, `DayTimeline`,
    and combined presets.
 4. **M4 — Release.** Publish on GitHub and F-Droid under Apache-2.0 (D-1).
 
@@ -528,5 +538,6 @@ figures must be validated against primary sources before external use.
 | v1.8 | 27 September 2026 | Henning Gründl | Birthday sources kept apart: contacts pink, Google green, own patterns, no de-duplication (FR-B1, FR-B7, FR-E6) — generated with Claude AI |
 | v1.9 | 27 September 2026 | Henning Gründl | Calendar colour overrides with reset (FR-E4a); day popup next to the tapped day (FR-I1, FR-I2) — generated with Claude AI |
 | v1.10 | 27 September 2026 | Henning Gründl | M2 layouts: month grid, agenda, upcoming birthdays, next up with countdown; "+N" in the day header — generated with Claude AI |
+| v1.11 | 27 September 2026 | Henning Gründl | M3 layouts: week and day timelines, week + agenda, next up + birthdays — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

@@ -48,7 +48,12 @@ import java.time.Instant
 
 /** Panel background for the list layouts: one surface, rounded like the widget. */
 @Composable
-private fun panelModifier(state: WidgetState, palette: WidgetPalette): GlanceModifier {
+private fun panelModifier(state: WidgetState, palette: WidgetPalette, root: Boolean): GlanceModifier {
+    if (!root) {
+        // Inside a combined layout: the outer block has the widget background; per-cell style gets a panel.
+        return if (state.config.background == BackgroundStyle.SINGLE) GlanceModifier.fillMaxSize()
+        else GlanceModifier.fillMaxSize().padding(4.dp).background(palette.cell).cornerRadius(8.dp)
+    }
     val bg = if (state.config.background == BackgroundStyle.SINGLE) palette.background else palette.cell
     return GlanceModifier.fillMaxSize()
         .appWidgetBackground()
@@ -58,10 +63,10 @@ private fun panelModifier(state: WidgetState, palette: WidgetPalette): GlanceMod
 
 /** Agenda and upcoming birthdays: a scrollable list grouped by day. */
 @Composable
-fun ListView(days: List<ListDay>, state: WidgetState, palette: WidgetPalette) {
+fun ListView(days: List<ListDay>, state: WidgetState, palette: WidgetPalette, root: Boolean = true) {
     val context = LocalContext.current
     val textSp = 13f * state.config.textScale
-    Box(panelModifier(state, palette).padding(horizontal = 12.dp, vertical = 8.dp)) {
+    Box(panelModifier(state, palette, root).padding(horizontal = 12.dp, vertical = 8.dp)) {
         if (days.isEmpty()) {
             Text(context.getString(R.string.no_entries), style = TextStyle(color = palette.onCellDim, fontSize = textSp.sp))
             return@Box
@@ -131,13 +136,13 @@ private fun ClippedText(text: String, style: TextStyle) {
 
 /** The next events, the first one large, with a live countdown when it starts within a day. */
 @Composable
-fun NextUpView(items: List<NextUpItem>, state: WidgetState, palette: WidgetPalette) {
+fun NextUpView(items: List<NextUpItem>, state: WidgetState, palette: WidgetPalette, root: Boolean = true) {
     val context = LocalContext.current
     val size = LocalSize.current
     val scale = state.config.textScale
     // The first item takes about 60 dp, each further one about 44 dp.
     val fits = 1 + ((size.height.value - 16f - 60f * scale) / (44f * scale)).toInt().coerceAtLeast(0)
-    Column(panelModifier(state, palette).padding(horizontal = 12.dp, vertical = 8.dp)) {
+    Column(panelModifier(state, palette, root).padding(horizontal = 12.dp, vertical = 8.dp)) {
         if (items.isEmpty()) {
             Text(context.getString(R.string.nothing_coming_up), style = TextStyle(color = palette.onCellDim, fontSize = (14f * scale).sp))
         }

@@ -58,9 +58,13 @@ class WhatsUpWidget : GlanceAppWidget() {
             val cfg = config.widget(appWidgetId)
             // Each layout loads only the days it can show.
             val (from, to) = when (cfg.layout) {
-                WidgetLayout.ROLLING_GRID -> GridRange.days(today, fdow, GridRange.MAX_WEEKS).let { it.first() to it.last() }
+                WidgetLayout.ROLLING_GRID, WidgetLayout.WEEK_TIMELINE, WidgetLayout.DAY_TIMELINE ->
+                    GridRange.days(today, fdow, GridRange.MAX_WEEKS).let { it.first() to it.last() }
+                // Grid part and list part both need their days.
+                WidgetLayout.GRID_AGENDA -> GridRange.start(today, fdow) to today.plusDays(maxOf(cfg.lookAheadDays, 42).toLong())
                 WidgetLayout.MONTH_GRID -> GridRange.monthDays(today, fdow).let { it.first() to it.last() }
-                WidgetLayout.AGENDA, WidgetLayout.BIRTHDAYS, WidgetLayout.NEXT_UP -> today to today.plusDays(cfg.lookAheadDays.toLong())
+                WidgetLayout.AGENDA, WidgetLayout.BIRTHDAYS, WidgetLayout.NEXT_UP, WidgetLayout.NEXT_UP_BIRTHDAYS ->
+                    today to today.plusDays(cfg.lookAheadDays.toLong())
             }
             val entries = if (hasPermission) {
                 EntryLoader(context).load(from, to, config, config.calendarIdsFor(appWidgetId))
