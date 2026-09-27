@@ -40,9 +40,9 @@ import app.whatsup.R
 import app.whatsup.config.AppConfig
 import app.whatsup.config.GlobalConfig
 import app.whatsup.config.configStore
-import app.whatsup.data.BIRTHDAY_COLOR
 import app.whatsup.data.CalendarRepository
 import app.whatsup.data.Permissions
+import app.whatsup.logic.GooglePalette
 import app.whatsup.model.ChipPattern
 import app.whatsup.model.LineStyle
 import app.whatsup.update.UpdateScheduler
@@ -110,6 +110,8 @@ private fun MainScreen() {
         SwitchRow(stringResource(R.string.birthdays_from_calendar), config.global.birthdaysFromCalendar) { on ->
             update { it.copy(birthdaysFromCalendar = on) }
         }
+        Text(stringResource(R.string.birthday_color), Modifier.padding(vertical = 6.dp))
+        ColorChoice(GooglePalette.eventColors, config.global.birthdayColor) { c -> update { it.copy(birthdayColor = c) } }
 
         // FR-D5: Google holiday calendars are recognised; others can be marked by hand.
         val markable = calendars.filter { !it.isBirthdays }
@@ -151,13 +153,13 @@ private fun MainScreen() {
 
         SectionTitle(stringResource(R.string.patterns))
         if (config.global.birthdaysFromContacts) {
-            CalendarStyleRow(stringResource(R.string.contact_birthdays), null, Color(BIRTHDAY_COLOR),
+            CalendarStyleRow(stringResource(R.string.contact_birthdays), null, Color(config.global.birthdayColor),
                 config.global.contactBirthdayPattern, { p -> update { it.copy(contactBirthdayPattern = p) } },
                 line = null)
         }
         calendars.forEach { cal ->
             CalendarStyleRow(
-                cal.name, cal.account, Color(if (cal.isBirthdays) BIRTHDAY_COLOR else cal.color),
+                cal.name, cal.account, Color(if (cal.isBirthdays) config.global.birthdayColor else cal.color),
                 fill = config.global.calendarPatterns[cal.id] ?: ChipPattern.NONE,
                 onFill = { p ->
                     update { it.copy(calendarPatterns = it.calendarPatterns.withDefault(cal.id, p, ChipPattern.NONE)) }

@@ -1,5 +1,6 @@
 package app.whatsup.config
 
+import app.whatsup.logic.GooglePalette
 import app.whatsup.model.ChipPattern
 import app.whatsup.model.LineStyle
 import kotlinx.serialization.Serializable
@@ -18,6 +19,8 @@ data class GlobalConfig(
     val extraHolidayCalendarIds: Set<Long> = emptySet(),
     val birthdaysFromContacts: Boolean = true,
     val birthdaysFromCalendar: Boolean = true,
+    /** Colour of all birthdays; Google Calendar's birthday green by default (FR-B7). */
+    val birthdayColor: Int = GooglePalette.BIRTHDAY,
     /** Fill per calendar ID; calendars without an entry are solid. */
     val calendarPatterns: Map<Long, ChipPattern> = emptyMap(),
     /** Outline per calendar ID; calendars without an entry are solid. */

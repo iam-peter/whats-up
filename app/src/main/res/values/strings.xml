@@ -19,7 +19,7 @@
     <string name="add_widget">Add widget to home screen</string>
     <string name="birthdays">Birthdays</string>
     <string name="birthdays_from_contacts">From contacts</string>
-    <string name="birthdays_from_calendar">From the Birthdays calendar</string>
+    <string name="birthdays_from_calendar">From calendars (Google birthdays)</string>
     <string name="preferred_holiday_calendar">Preferred holiday calendar</string>
     <string name="default_calendars">Default calendars</string>
     <string name="weeks">Weeks</string>
@@ -61,4 +61,5 @@
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>
     <string name="no_entries">No entries</string>
+    <string name="birthday_color">Birthday colour</string>
 </resources>

@@ -18,7 +18,7 @@
     <string name="add_widget">Widget zum Startbildschirm hinzufügen</string>
     <string name="birthdays">Geburtstage</string>
     <string name="birthdays_from_contacts">Aus Kontakten</string>
-    <string name="birthdays_from_calendar">Aus dem Geburtstagskalender</string>
+    <string name="birthdays_from_calendar">Aus Kalendern (Google-Geburtstage)</string>
     <string name="preferred_holiday_calendar">Bevorzugter Feiertagskalender</string>
     <string name="default_calendars">Standardkalender</string>
     <string name="weeks">Wochen</string>
@@ -60,4 +60,5 @@
     <string name="tomorrow">Morgen</string>
     <string name="yesterday">Gestern</string>
     <string name="no_entries">Keine Einträge</string>
+    <string name="birthday_color">Geburtstagsfarbe</string>
 </resources>

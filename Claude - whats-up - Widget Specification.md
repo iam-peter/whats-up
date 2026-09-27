@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.6
+Version: v1.7
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -235,6 +235,10 @@ combinations the presets offer.
   - `ContactsContract.CommonDataKinds.Event` with `TYPE_BIRTHDAY`,
   - the Google "Birthdays" calendar (`addressbook#contacts@group.v.calendar.google.com`).
 
+  - Google Calendar's own birthday entries, which live in normal
+    calendars and are marked with the extended property
+    `shared:calendarProviderEventType = BIRTHDAY`.
+
   These are **de-duplicated per person**. The match is by contact lookup
   key where it is available, otherwise by normalised display name plus
   date. Anniversaries and other contact dates are ignored (Q-12).
@@ -249,6 +253,9 @@ combinations the presets offer.
   age. The names are visible in the in-app day view and in TalkBack (D-3).
 - **FR-B5** `READ_CONTACTS` is requested only when the contacts source is
   enabled. Without it, only the birthday calendar is used.
+- **FR-B7** All birthdays share one colour, chosen from Google Calendar's
+  event colours; the default is Google Calendar's birthday green (Sage
+  `#33B679`), so the widget and Google Calendar look the same.
 - **FR-B6** The cake icon is a per-widget setting: always shown or never
   shown. It sits beside the text and narrows it; it is never dropped to
   make room.
@@ -274,7 +281,11 @@ combinations the presets offer.
     times", on by default). The day view shows start–end (Q-25).
   - The time format follows the system 12/24-hour setting.
 - **FR-E4** Colour is the event colour if one is set, otherwise the
-  calendar colour (Q-33).
+  calendar colour (Q-33). Android stores Google colours from Google's
+  original palette, while the Google Calendar app shows its current
+  palette, so the widget converts the old palette values to the current
+  ones (for example `#FAD165` → Banana `#F6BF26`) and matches Google
+  Calendar. Colours outside that palette are used as stored.
 - **FR-E5** Past days are **dimmed** (Q-19a). Today's events that have
   already ended are **dimmed** (Q-19b).
 - **FR-E6** Users can style each calendar's chips with two settings,
@@ -482,5 +493,6 @@ figures must be validated against primary sources before external use.
 | v1.4 | 25 September 2026 | Henning Gründl | Single-line entries clipped at the pixel edge (FR-L5); multi-day bars (FR-E2); event-time option (FR-E3); accent colour (FR-T1); holiday calendars marked by hand (FR-D5); calendar app picker (FR-I3); day view uses the widget's calendars (FR-I4) — generated with Claude AI |
 | v1.5 | 25 September 2026 | Henning Gründl | Next-month days without cell background, thinner today border with inset header (FR-T2, FR-T4) — generated with Claude AI |
 | v1.6 | 25 September 2026 | Henning Gründl | Every widget tap opens a swipeable day popup (FR-I1, FR-I2, D-2) — generated with Claude AI |
+| v1.7 | 27 September 2026 | Henning Gründl | Colours converted to Google's current palette (FR-E4); Google birthday entries recognised (FR-B1); birthday colour setting, green by default (FR-B7) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

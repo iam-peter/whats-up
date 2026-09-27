@@ -5,7 +5,9 @@ import android.content.Context
 import android.provider.CalendarContract.Attendees
 import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Events
+import android.provider.CalendarContract.ExtendedProperties
 import android.provider.CalendarContract.Instances
+import app.whatsup.logic.GooglePalette
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.EntryKind
 import java.time.Instant
@@ -27,6 +29,10 @@ data class CalendarInfo(
 class CalendarRepository(private val context: Context) {
     companion object {
         const val BIRTHDAY_CALENDAR = "addressbook#contacts@group.v.calendar.google.com"
+
+        /** How Google marks its own birthday entries in a normal calendar. */
+        private const val EVENT_TYPE_PROPERTY = "shared:calendarProviderEventType"
+        private const val EVENT_TYPE_BIRTHDAY = "BIRTHDAY"
         private const val HOLIDAY_SUFFIX = "#holiday@group.v.calendar.google.com"
 
         fun isHoliday(owner: String?) = owner?.endsWith(HOLIDAY_SUFFIX) == true
@@ -48,7 +54,7 @@ class CalendarRepository(private val context: Context) {
                 while (c.moveToNext()) {
                     val owner = c.getString(4)
                     val id = c.getLong(0)
-                    add(CalendarInfo(id, c.getString(1) ?: "", c.getString(2) ?: "", c.getInt(3),
+                    add(CalendarInfo(id, c.getString(1) ?: "", c.getString(2) ?: "", GooglePalette.current(c.getInt(3)),
                         isHoliday(owner) || id in extraHolidayIds, isBirthdays(owner), autoHoliday = isHoliday(owner)))
                 }
             }
@@ -86,6 +92,7 @@ class CalendarRepository(private val context: Context) {
             append(" AND ${Instances.SELF_ATTENDEE_STATUS} != ${Attendees.ATTENDEE_STATUS_DECLINED}")
             if (calendarIds != null) append(" AND ${Instances.CALENDAR_ID} IN (${calendarIds.joinToString().ifEmpty { "-1" }})")
         }
+        val googleBirthdays = googleBirthdayEventIds()
         return context.contentResolver.query(uri, projection, selection, null, "${Instances.BEGIN} ASC")?.use { c ->
             buildList {
                 while (c.moveToNext()) {
@@ -106,12 +113,12 @@ class CalendarRepository(private val context: Context) {
                     add(
                         CalendarEntry(
                             kind = when {
-                                isBirthdays(owner) -> EntryKind.BIRTHDAY
+                                isBirthdays(owner) || c.getLong(0) in googleBirthdays -> EntryKind.BIRTHDAY
                                 allDay -> EntryKind.ALL_DAY
                                 else -> EntryKind.TIMED
                             },
                             title = c.getString(1)?.takeIf { it.isNotBlank() } ?: "—",
-                            color = c.getInt(5),
+                            color = GooglePalette.current(c.getInt(5)),
                             firstDay = firstDay,
                             lastDay = lastDay,
                             start = if (allDay) null else Instant.ofEpochMilli(startMs),
@@ -125,4 +132,16 @@ class CalendarRepository(private val context: Context) {
             }
         }.orEmpty()
     }
+
+    /**
+     * Google Calendar keeps birthdays in normal calendars and marks them with
+     * an extended property; the provider has no event type column.
+     */
+    private fun googleBirthdayEventIds(): Set<Long> = context.contentResolver.query(
+        ExtendedProperties.CONTENT_URI,
+        arrayOf(ExtendedProperties.EVENT_ID),
+        "${ExtendedProperties.NAME} = ? AND ${ExtendedProperties.VALUE} = ?",
+        arrayOf(EVENT_TYPE_PROPERTY, EVENT_TYPE_BIRTHDAY),
+        null,
+    )?.use { c -> buildSet { while (c.moveToNext()) add(c.getLong(0)) } }.orEmpty()
 }
