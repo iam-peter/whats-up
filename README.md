@@ -11,9 +11,14 @@ fixes its rendering problems and makes the layout more configurable.
 - **Dense, readable entries:** one line each, clipped at the chip edge
   (no "…"); entries that don't fit collapse into "+N".
 - **Multi-day events** as one bar across the days they cover.
-- **Birthdays:** from Contacts and the Google Birthdays calendar,
-  de-duplicated per person, with age and an optional cake icon. Several on
-  one day are grouped into "N birthdays".
+- **Birthdays:** from Contacts (pink) and Google Calendar (its birthday
+  green), kept apart so duplicates can be spotted, with age and an optional
+  cake icon. Several on one day are grouped into "N birthdays" per source.
+- **Colours as in Google Calendar:** Google's stored palette is converted
+  to the one the Google Calendar app shows.
+- **Day popup:** a tap on the widget opens the day over the home screen;
+  swipe to the previous or next day, tap an entry to open it in the
+  calendar app.
 - **Timed events** show their start time (optional); past days and events
   that have already ended are dimmed.
 - **Per-calendar styles:** a fill pattern (stripes, dots, grid, zigzag)
@@ -21,8 +26,8 @@ fixes its rendering problems and makes the layout more configurable.
 - **Holiday de-duplication** across holiday calendars in different
   languages; any calendar can be marked as a holiday calendar.
 - **Configurable per widget** with a live preview: weeks, text size,
-  density, background, weekend tint, week numbers, colours, calendars, and
-  which calendar app opens on a tap.
+  density, background, weekend tint, week numbers, event times, colours,
+  calendars, and which calendar app opens events.
 - **Private and light:** no internet permission; it updates only when the
   calendar changes, at midnight or when an event ends.
 - German and English, with TalkBack descriptions.
