@@ -247,7 +247,7 @@ combinations the presets offer.
   calendar order is kept.
   - Classification: the calendar's owner matches
     `*#holiday@group.v.calendar.google.com`, or the user ticks it under
-    "Holiday calendars" on the main screen.
+    "Holiday calendars" in the settings.
   - Titles in different languages (for example "Day of German Unity" and
     "Tag der Deutschen Einheit") cannot be matched by their titles. For
     these, the rule is **one entry per day per holiday calendar group**,
@@ -334,7 +334,7 @@ combinations the presets offer.
     Birthday calendars have no timed events, so they only offer a fill.
   - Birthdays have their own fill per source ("Birthdays from contacts",
     "Google birthdays") instead of their calendar's.
-  - Both settings are global (main screen), like the default calendars.
+  - Both settings are shared by all widgets ("Calendars" in the settings).
   - An aggregated birthday chip uses the fill of its first birthday.
   - Glance's tint keeps a drawable's own alpha, so dimmed chips (FR-E5) use
     pre-dimmed drawable variants rather than a translucent tint.
