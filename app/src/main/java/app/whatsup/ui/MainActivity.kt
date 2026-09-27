@@ -154,7 +154,7 @@ private fun MainScreen() {
             CalendarPicker(calendars, config.global.calendarIds) { ids -> update { it.copy(calendarIds = ids) } }
         }
 
-        SectionTitle(stringResource(R.string.patterns))
+        SectionTitle(stringResource(R.string.calendar_styles))
         if (config.global.birthdaysFromContacts) {
             CalendarStyleRow(stringResource(R.string.contact_birthdays), null, Color(config.global.contactBirthdayColor),
                 config.global.contactBirthdayPattern, { p -> update { it.copy(contactBirthdayPattern = p) } },
@@ -167,8 +167,9 @@ private fun MainScreen() {
         }
         // Birthday calendars are covered by the Google birthdays row above.
         calendars.filterNot { it.isBirthdays }.forEach { cal ->
+            val custom = config.global.calendarColors[cal.id]
             CalendarStyleRow(
-                cal.name, cal.account, Color(cal.color),
+                cal.name, cal.account, Color(custom ?: cal.color),
                 fill = config.global.calendarPatterns[cal.id] ?: ChipPattern.NONE,
                 onFill = { p ->
                     update { it.copy(calendarPatterns = it.calendarPatterns.withDefault(cal.id, p, ChipPattern.NONE)) }
@@ -176,6 +177,10 @@ private fun MainScreen() {
                 line = config.global.calendarLineStyles[cal.id] ?: LineStyle.SOLID,
                 onLine = { l ->
                     update { it.copy(calendarLineStyles = it.calendarLineStyles.withDefault(cal.id, l, LineStyle.SOLID)) }
+                },
+                sourceColor = cal.color,
+                onColor = { c ->
+                    update { it.copy(calendarColors = if (c == null) it.calendarColors - cal.id else it.calendarColors + (cal.id to c)) }
                 },
             )
         }

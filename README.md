@@ -15,8 +15,10 @@ fixes its rendering problems and makes the layout more configurable.
   green), kept apart so duplicates can be spotted, with age and an optional
   cake icon. Several on one day are grouped into "N birthdays" per source.
 - **Colours as in Google Calendar:** Google's stored palette is converted
-  to the one the Google Calendar app shows.
-- **Day popup:** a tap on the widget opens the day over the home screen;
+  to the one the Google Calendar app shows, and any calendar's colour can
+  be set from Google Calendar's colours (for example when Android doesn't
+  receive a colour changed in Google Calendar), with a reset to the source.
+- **Day popup:** a tap on the widget opens the day next to the tapped day;
   swipe to the previous or next day, tap an entry to open it in the
   calendar app.
 - **Timed events** show their start time (optional); past days and events

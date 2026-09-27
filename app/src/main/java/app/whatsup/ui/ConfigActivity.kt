@@ -135,6 +135,7 @@ private fun ConfigScreen(appWidgetId: Int, onDone: () -> Unit) {
             SwitchRow(stringResource(R.string.week_numbers), cfg.showWeekNumbers) { cfg = cfg.copy(showWeekNumbers = it) }
             SwitchRow(stringResource(R.string.birthday_icon), cfg.showBirthdayIcon) { cfg = cfg.copy(showBirthdayIcon = it) }
             SwitchRow(stringResource(R.string.event_times), cfg.showEventTimes) { cfg = cfg.copy(showEventTimes = it) }
+            SwitchRow(stringResource(R.string.popup_next_to_day), cfg.popupNextToDay) { cfg = cfg.copy(popupNextToDay = it) }
 
             if (calendars.isNotEmpty()) {
                 SectionTitle(stringResource(R.string.calendars))

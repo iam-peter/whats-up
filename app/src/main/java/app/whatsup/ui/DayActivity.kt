@@ -4,18 +4,22 @@ import android.appwidget.AppWidgetManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -72,7 +77,10 @@ class DayActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val date = intent.getStringExtra(EXTRA_DATE)?.let(LocalDate::parse) ?: LocalDate.now()
         val appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-        setContent { AppTheme { DayPopup(date, appWidgetId, onDismiss = ::finish) } }
+        // Edge-to-edge, so the tap position from the launcher (screen pixels) matches the window.
+        enableEdgeToEdge()
+        val tapped = intent.sourceBounds
+        setContent { AppTheme { DayPopup(date, appWidgetId, tapped, onDismiss = ::finish) } }
     }
 }
 
@@ -80,7 +88,7 @@ class DayActivity : ComponentActivity() {
 private const val PAGE_RANGE = 10_000
 
 @Composable
-private fun DayPopup(start: LocalDate, appWidgetId: Int, onDismiss: () -> Unit) {
+private fun DayPopup(start: LocalDate, appWidgetId: Int, tapped: android.graphics.Rect?, onDismiss: () -> Unit) {
     val context = LocalContext.current
     var config by remember { mutableStateOf<AppConfig?>(null) }
     LaunchedEffect(Unit) { config = context.configStore.data.first() }
@@ -91,15 +99,31 @@ private fun DayPopup(start: LocalDate, appWidgetId: Int, onDismiss: () -> Unit) 
     Box(
         Modifier.fillMaxSize()
             .background(Color.Black.copy(alpha = 0.4f))
-            .clickable(noRipple, indication = null, onClick = onDismiss)
-            .safeDrawingPadding(),
+            .clickable(noRipple, indication = null, onClick = onDismiss),
     ) {
         val cfg = config ?: return@Box
-        // Each day is its own card, sized to its content, so swiping doesn't
-        // resize a shared container and shift the entries around.
-        HorizontalPager(pager, Modifier.fillMaxSize(), pageSpacing = 16.dp) { page ->
-            Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-                DayCard(start.plusDays((page - PAGE_RANGE).toLong()), appWidgetId, cfg, noRipple, onDismiss)
+        val anchor = tapped?.takeIf { cfg.widget(appWidgetId).popupNextToDay }
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val density = LocalDensity.current
+            val insets = WindowInsets.safeDrawing.asPaddingValues()
+            // Next to the tapped day (like Chronos): below it in the upper half, above it in the lower half.
+            val (alignment, padding) = if (anchor == null) {
+                Alignment.Center to Modifier.padding(insets).padding(24.dp)
+            } else with(density) {
+                val gap = 8.dp
+                val below = anchor.centerY() < constraints.maxHeight / 2
+                if (below) {
+                    Alignment.TopCenter to Modifier.padding(top = anchor.bottom.toDp() + gap, bottom = insets.calculateBottomPadding() + 16.dp)
+                } else {
+                    Alignment.BottomCenter to Modifier.padding(top = insets.calculateTopPadding() + 16.dp, bottom = (constraints.maxHeight - anchor.top).toDp() + gap)
+                }
+            }
+            // Each day is its own card, sized to its content, so swiping doesn't
+            // resize a shared container and shift the entries around.
+            HorizontalPager(pager, Modifier.fillMaxSize(), pageSpacing = 16.dp) { page ->
+                Box(Modifier.fillMaxSize().then(padding).padding(horizontal = 16.dp), contentAlignment = alignment) {
+                    DayCard(start.plusDays((page - PAGE_RANGE).toLong()), appWidgetId, cfg, noRipple, onDismiss)
+                }
             }
         }
     }

@@ -64,4 +64,11 @@
     <string name="contact_birthday_color">Colour of contact birthdays</string>
     <string name="google_birthday_color">Colour of Google birthdays</string>
     <string name="google_birthdays">Google birthdays</string>
+    <string name="custom_color">Custom colour, tap to change</string>
+    <string name="calendar_color">Calendar colour, tap to change</string>
+    <string name="color">Colour</string>
+    <string name="reset_calendar_color">Reset to calendar colour</string>
+    <string name="close">Close</string>
+    <string name="calendar_styles">Calendar styles</string>
+    <string name="popup_next_to_day">Day popup next to the tapped day</string>
 </resources>

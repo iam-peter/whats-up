@@ -63,4 +63,11 @@
     <string name="contact_birthday_color">Farbe der Kontakt-Geburtstage</string>
     <string name="google_birthday_color">Farbe der Google-Geburtstage</string>
     <string name="google_birthdays">Google-Geburtstage</string>
+    <string name="custom_color">Eigene Farbe, zum Ändern tippen</string>
+    <string name="calendar_color">Kalenderfarbe, zum Ändern tippen</string>
+    <string name="color">Farbe</string>
+    <string name="reset_calendar_color">Auf Kalenderfarbe zurücksetzen</string>
+    <string name="close">Schließen</string>
+    <string name="calendar_styles">Kalenderdarstellung</string>
+    <string name="popup_next_to_day">Tagesansicht neben dem angetippten Tag</string>
 </resources>

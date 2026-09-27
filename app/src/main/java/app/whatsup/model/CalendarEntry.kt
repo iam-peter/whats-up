@@ -44,6 +44,8 @@ data class CalendarEntry(
     val lineStyle: LineStyle = LineStyle.SOLID,
     /** Only for birthdays. */
     val birthdaySource: BirthdaySource? = null,
+    /** The event has its own colour; a calendar colour override doesn't change it. */
+    val hasOwnColor: Boolean = false,
 ) {
     fun occursOn(day: LocalDate) = !day.isBefore(firstDay) && !day.isAfter(lastDay)
     val isMultiDay get() = lastDay.isAfter(firstDay)

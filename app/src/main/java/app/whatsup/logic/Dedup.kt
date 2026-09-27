@@ -35,6 +35,18 @@ object HolidayDeduplicator {
     }
 }
 
+object ColorOverrides {
+    /**
+     * Spec FR-E4a: a calendar colour chosen in whats-up replaces the source
+     * colour for that calendar's events, except events with their own
+     * colour, as in Google Calendar. Birthdays have their own settings.
+     */
+    fun apply(entries: List<CalendarEntry>, global: GlobalConfig): List<CalendarEntry> = entries.map { e ->
+        val override = e.calendarId?.let { global.calendarColors[it] }
+        if (override == null || e.hasOwnColor || e.kind == EntryKind.BIRTHDAY) e else e.copy(color = override)
+    }
+}
+
 object PatternAssigner {
     /** Spec FR-E6: fill and line style come from the entry's calendar, or the contacts setting. */
     fun assign(entries: List<CalendarEntry>, global: GlobalConfig): List<CalendarEntry> = entries.map { e ->

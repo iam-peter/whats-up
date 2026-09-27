@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.8
+Version: v1.9
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -289,6 +289,13 @@ combinations the presets offer.
   palette, so the widget converts the old palette values to the current
   ones (for example `#FAD165` → Banana `#F6BF26`) and matches Google
   Calendar. Colours outside that palette are used as stored.
+- **FR-E4a** Each calendar's colour can be replaced in whats-up
+  ("Calendar styles" on the main screen), from Google Calendar's 24
+  calendar colours, and reset to the source colour. Events with their own
+  colour keep it. This is needed because colour changes made in Google
+  Calendar don't reach Android's calendar provider (the provider on the
+  reference phone still had the colours of August 2025), and reading them
+  from Google would need network access (D-5).
 - **FR-E5** Past days are **dimmed** (Q-19a). Today's events that have
   already ended are **dimmed** (Q-19b).
 - **FR-E6** Users can style each calendar's chips with two settings,
@@ -332,9 +339,14 @@ combinations the presets offer.
 
 - **FR-I1** Every tap on the widget (a day, an entry, a bar or "+N") opens
   the **day popup** for that day (v1.6; replaces Q-38/Q-39, which sent taps
-  to the calendar app).
+  to the calendar app). The day cell's tap area is a plain RemoteViews view
+  with a mutable PendingIntent, so the launcher can add the tapped bounds;
+  Glance's own click actions are immutable and lose them. Entries don't
+  take taps; they pass to the day below.
 - **FR-I2** The day popup is a card over the dimmed home screen, like the
-  Chronos month widget's popup:
+  Chronos month widget's popup. By default it opens next to the tapped
+  day (below it in the upper half of the screen, above it in the lower
+  half); a per-widget setting centres it instead.
   - it lists every entry of the day, with birthday names and ages (D-3),
     times as start–end (Q-25) and date ranges for multi-day events;
   - **swiping left or right** moves to the next or previous day; each day
@@ -498,5 +510,6 @@ figures must be validated against primary sources before external use.
 | v1.6 | 25 September 2026 | Henning Gründl | Every widget tap opens a swipeable day popup (FR-I1, FR-I2, D-2) — generated with Claude AI |
 | v1.7 | 27 September 2026 | Henning Gründl | Colours converted to Google's current palette (FR-E4); Google birthday entries recognised (FR-B1); birthday colour setting, green by default (FR-B7) — generated with Claude AI |
 | v1.8 | 27 September 2026 | Henning Gründl | Birthday sources kept apart: contacts pink, Google green, own patterns, no de-duplication (FR-B1, FR-B7, FR-E6) — generated with Claude AI |
+| v1.9 | 27 September 2026 | Henning Gründl | Calendar colour overrides with reset (FR-E4a); day popup next to the tapped day (FR-I1, FR-I2) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

@@ -50,6 +50,13 @@ object GooglePalette {
         0xDC2127 to 0xD50000, // Tomato
     ).associate { (old, new) -> (old or OPAQUE) to (new or OPAQUE) }
 
+    /** Google Calendar's calendar colours, in the order its colour picker shows them. */
+    val calendarColors: List<Int> = listOf(
+        0xAD1457, 0xD81B60, 0xD50000, 0xE67C73, 0xF4511E, 0xEF6C00, 0xF09300, 0xF6BF26,
+        0xE4C441, 0xC0CA33, 0x7CB342, 0x33B679, 0x0B8043, 0x009688, 0x039BE5, 0x4285F4,
+        0x3F51B5, 0x7986CB, 0xB39DDB, 0x9E69AF, 0x8E24AA, 0x795548, 0x616161, 0xA79B8E,
+    ).map { it or OPAQUE }
+
     /** The colours offered for birthdays: Google Calendar's event colours. */
     val eventColors: List<Int> = listOf(
         0x7986CB, 0x33B679, 0x8E24AA, 0xE67C73, 0xF6BF26, 0xF4511E, 0x039BE5, 0x616161, 0x3F51B5, 0x0B8043, 0xD50000,

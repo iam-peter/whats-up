@@ -28,6 +28,12 @@ data class GlobalConfig(
     val googleBirthdayColor: Int = GooglePalette.BIRTHDAY,
     /** Fill per calendar ID; calendars without an entry are solid. */
     val calendarPatterns: Map<Long, ChipPattern> = emptyMap(),
+    /**
+     * Colour per calendar ID, replacing the source colour (FR-E4a). Android
+     * doesn't receive colour changes made in Google Calendar, so this lets
+     * the widget match what Google Calendar shows. Absent = source colour.
+     */
+    val calendarColors: Map<Long, Int> = emptyMap(),
     /** Outline per calendar ID; calendars without an entry are solid. */
     val calendarLineStyles: Map<Long, LineStyle> = emptyMap(),
     /** Birthdays have their own patterns, per source, instead of their calendar's. */
@@ -52,6 +58,8 @@ data class WidgetConfig(
     val dynamicColors: Boolean = true,
     /** Accent (today border, day number) when [dynamicColors] is off; ARGB. */
     val accentColor: Int = 0xFF3F51B5.toInt(),
+    /** Day popup opens next to the tapped day (like Chronos) instead of centred (FR-I2). */
+    val popupNextToDay: Boolean = true,
     /** Start time in front of timed events (FR-E3). */
     val showEventTimes: Boolean = true,
     /** null = system default handler for calendar intents. */

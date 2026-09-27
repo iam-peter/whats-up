@@ -1,7 +1,9 @@
 package app.whatsup.widget
 
 import android.appwidget.AppWidgetManager
+import android.app.PendingIntent
 import android.content.Context
+import android.widget.RemoteViews
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -13,6 +15,7 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.AndroidRemoteViews
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
@@ -147,8 +150,8 @@ private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m
 @Composable
 private fun DayBackground(cell: DayCell, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
     val cfg = state.config
+    val context = LocalContext.current
     var body = GlanceModifier.fillMaxSize()
-        .clickable(actionStartActivity(Intents.inAppDay(LocalContext.current, cell.date, state.appWidgetId)))
     val tintWeekend = cfg.weekendStyle == WeekendStyle.TINTED && cell.isWeekend
     // Days of the next month have no cell background, as in the Chronos month widget.
     if ((cfg.background == BackgroundStyle.PER_CELL && !cell.isNextMonth) || tintWeekend) {
@@ -162,6 +165,9 @@ private fun DayBackground(cell: DayCell, state: WidgetState, m: GridMetrics, pal
                 // Spec Q-35: today is marked with a cell border.
                 Box(GlanceModifier.fillMaxSize().background(ImageProvider(R.drawable.today_outline), colorFilter = ColorFilter.tint(palette.accent))) {}
             }
+            // The whole cell opens the day popup (FR-I1). Entries on top don't take
+            // taps, so the tap reaches this view wherever it lands in the day.
+            AndroidRemoteViews(dayTapTarget(context, cell.date, state.appWidgetId), GlanceModifier.fillMaxSize())
         }
     }
 }
@@ -213,8 +219,7 @@ private fun DayEntries(cell: DayCell, state: WidgetState, m: GridMetrics, palett
                 it,
                 modifier = GlanceModifier.fillMaxWidth()
                     .height(m.lineHeightDp.dp)
-                    .padding(horizontal = m.chipHPaddingDp.dp)
-                    .clickable(actionStartActivity(Intents.forTarget(context, ChipTarget.InAppDay(cell.date), state.config.calendarPackage, state.appWidgetId))),
+                    .padding(horizontal = m.chipHPaddingDp.dp),
                 style = TextStyle(color = palette.onCellDim, fontSize = m.textSp.sp, fontWeight = FontWeight.Bold),
             )
         }
@@ -242,7 +247,6 @@ private fun ChipView(chip: Chip, state: WidgetState, m: GridMetrics, palette: Wi
         .then(background)
         .cornerRadius(if (rounded) 3.dp else 0.dp)
         .padding(horizontal = m.chipHPaddingDp.dp, vertical = m.chipVPaddingDp.dp)
-        .clickable(actionStartActivity(Intents.forTarget(context, chip.target, state.config.calendarPackage, state.appWidgetId)))
         .semantics { contentDescription = chip.description }
     // No ellipsis (FR-L5). The text view is laid out wider than the chip, so its
     // single line never wraps or ellipsises; the chip's bounds cut it at the
@@ -274,6 +278,22 @@ private fun ChipView(chip: Chip, state: WidgetState, m: GridMetrics, palette: Wi
         } else {
             text(chipModifier.height(textHeight + (2 * m.chipVPaddingDp).dp))
         }
+    }
+}
+
+/**
+ * Glance creates immutable PendingIntents, which drop the launcher's fill-in,
+ * so the popup would never learn where the tap was. This view uses a mutable
+ * one (explicit intent, so allowed): the launcher adds the tapped bounds and
+ * the popup can open next to the day (FR-I2).
+ */
+private fun dayTapTarget(context: Context, date: LocalDate, appWidgetId: Int): RemoteViews {
+    val pending = PendingIntent.getActivity(
+        context, 0, Intents.inAppDay(context, date, appWidgetId),
+        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+    return RemoteViews(context.packageName, R.layout.day_tap_target).apply {
+        setOnClickPendingIntent(R.id.tap_target, pending)
     }
 }
 

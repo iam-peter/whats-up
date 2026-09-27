@@ -1,6 +1,12 @@
 package app.whatsup.ui
 
 import androidx.compose.foundation.background
+import app.whatsup.logic.GooglePalette
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -113,11 +119,32 @@ fun CalendarStyleRow(
     onFill: (ChipPattern) -> Unit,
     line: LineStyle?,
     onLine: (LineStyle) -> Unit = {},
+    /** Set for calendars: the source colour and a callback (null = reset to it). */
+    sourceColor: Int? = null,
+    onColor: ((Int?) -> Unit)? = null,
 ) {
+    var picking by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Text(label)
-        sublabel?.let {
-            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(label)
+                sublabel?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            if (onColor != null && sourceColor != null) {
+                val custom = color.toArgb() != sourceColor
+                val name = stringResource(if (custom) R.string.custom_color else R.string.calendar_color)
+                Box(
+                    Modifier.size(32.dp).clip(CircleShape).background(color)
+                        .border(if (custom) 2.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                        .clickable(onClickLabel = name) { picking = true }
+                        .semantics { contentDescription = name },
+                )
+            }
+        }
+        if (picking && onColor != null && sourceColor != null) {
+            CalendarColorDialog(color.toArgb(), sourceColor, onPick = { onColor(it); picking = false }, onDismiss = { picking = false })
         }
         Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             StyleDropdown(stringResource(R.string.fill), ChipPattern.entries, fill, onFill, Modifier.weight(1f),
@@ -240,4 +267,30 @@ fun ColorChoice(colors: List<Int>, selected: Int, onSelect: (Int) -> Unit) {
             )
         }
     }
+}
+
+/**
+ * Colour choice for a calendar: Google Calendar's own 24 colours, so a pick
+ * always matches what Google Calendar can show, plus a reset to the source
+ * colour (FR-E4a). Material 3 has no colour picker component.
+ */
+@Composable
+fun CalendarColorDialog(current: Int, source: Int, onPick: (Int?) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.color)) },
+        text = {
+            Column {
+                ColorChoice(GooglePalette.calendarColors, current) { onPick(if (it == source) null else it) }
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 16.dp).clip(RoundedCornerShape(8.dp)).clickable { onPick(null) }.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(24.dp).clip(CircleShape).background(Color(source)))
+                    Text(stringResource(R.string.reset_calendar_color), Modifier.padding(start = 12.dp))
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
+    )
 }

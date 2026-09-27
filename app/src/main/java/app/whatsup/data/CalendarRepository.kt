@@ -85,7 +85,7 @@ class CalendarRepository(private val context: Context) {
         val projection = arrayOf(
             Instances.EVENT_ID, Instances.TITLE, Instances.BEGIN, Instances.END, Instances.ALL_DAY,
             Instances.DISPLAY_COLOR, Instances.CALENDAR_ID, Instances.OWNER_ACCOUNT,
-            Instances.SELF_ATTENDEE_STATUS, Instances.STATUS,
+            Instances.SELF_ATTENDEE_STATUS, Instances.STATUS, Instances.EVENT_COLOR,
         )
         val selection = buildString {
             append("${Instances.VISIBLE} = 1")
@@ -126,6 +126,7 @@ class CalendarRepository(private val context: Context) {
                             end = if (allDay) null else Instant.ofEpochMilli(endMs),
                             eventId = c.getLong(0),
                             calendarId = c.getLong(6),
+                            hasOwnColor = !c.isNull(10) && c.getInt(10) != 0,
                             isHoliday = isHoliday(owner) || c.getLong(6) in extraHolidayIds,
                             birthdaySource = if (isBirthdays(owner) || c.getLong(0) in googleBirthdays) BirthdaySource.GOOGLE else null,
                         )
