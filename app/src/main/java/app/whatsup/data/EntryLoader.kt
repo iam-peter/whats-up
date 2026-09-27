@@ -2,10 +2,10 @@ package app.whatsup.data
 
 import android.content.Context
 import app.whatsup.config.AppConfig
-import app.whatsup.logic.BirthdayMerger
 import app.whatsup.logic.BirthdayRules
 import app.whatsup.logic.HolidayDeduplicator
 import app.whatsup.logic.PatternAssigner
+import app.whatsup.model.BirthdaySource
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.EntryKind
 import java.time.LocalDate
@@ -28,12 +28,16 @@ class EntryLoader(context: Context) {
         val contactBirthdays = if (global.birthdaysFromContacts) {
             contacts.birthdays().flatMap { b ->
                 BirthdayRules.occurrencesIn(b, from, to).map { day ->
-                    CalendarEntry(EntryKind.BIRTHDAY, b.name, global.birthdayColor, day, age = BirthdayRules.age(b, day))
+                    CalendarEntry(
+                        EntryKind.BIRTHDAY, b.name, global.contactBirthdayColor, day,
+                        age = BirthdayRules.age(b, day), birthdaySource = BirthdaySource.CONTACTS,
+                    )
                 }
             }
         } else emptyList()
-        val fromCalendar = if (global.birthdaysFromCalendar) calendarBirthdays.map { it.copy(color = global.birthdayColor) } else emptyList()
-        val birthdays = BirthdayMerger.merge(contactBirthdays, fromCalendar)
+        val fromCalendar = if (global.birthdaysFromCalendar) calendarBirthdays.map { it.copy(color = global.googleBirthdayColor) } else emptyList()
+        // Not merged: both sources stay visible, so duplicates can be cleaned up (FR-B1).
+        val birthdays = contactBirthdays + fromCalendar
         return PatternAssigner.assign(HolidayDeduplicator.apply(events, global.preferredHolidayCalendarId) + birthdays, global)
     }
 }

@@ -42,6 +42,7 @@ import app.whatsup.config.GlobalConfig
 import app.whatsup.config.configStore
 import app.whatsup.data.CalendarRepository
 import app.whatsup.data.Permissions
+import app.whatsup.config.CONTACT_BIRTHDAY_COLOR
 import app.whatsup.logic.GooglePalette
 import app.whatsup.model.ChipPattern
 import app.whatsup.model.LineStyle
@@ -110,8 +111,10 @@ private fun MainScreen() {
         SwitchRow(stringResource(R.string.birthdays_from_calendar), config.global.birthdaysFromCalendar) { on ->
             update { it.copy(birthdaysFromCalendar = on) }
         }
-        Text(stringResource(R.string.birthday_color), Modifier.padding(vertical = 6.dp))
-        ColorChoice(GooglePalette.eventColors, config.global.birthdayColor) { c -> update { it.copy(birthdayColor = c) } }
+        Text(stringResource(R.string.contact_birthday_color), Modifier.padding(vertical = 6.dp))
+        ColorChoice(BIRTHDAY_COLORS, config.global.contactBirthdayColor) { c -> update { it.copy(contactBirthdayColor = c) } }
+        Text(stringResource(R.string.google_birthday_color), Modifier.padding(vertical = 6.dp))
+        ColorChoice(BIRTHDAY_COLORS, config.global.googleBirthdayColor) { c -> update { it.copy(googleBirthdayColor = c) } }
 
         // FR-D5: Google holiday calendars are recognised; others can be marked by hand.
         val markable = calendars.filter { !it.isBirthdays }
@@ -153,19 +156,24 @@ private fun MainScreen() {
 
         SectionTitle(stringResource(R.string.patterns))
         if (config.global.birthdaysFromContacts) {
-            CalendarStyleRow(stringResource(R.string.contact_birthdays), null, Color(config.global.birthdayColor),
+            CalendarStyleRow(stringResource(R.string.contact_birthdays), null, Color(config.global.contactBirthdayColor),
                 config.global.contactBirthdayPattern, { p -> update { it.copy(contactBirthdayPattern = p) } },
                 line = null)
         }
-        calendars.forEach { cal ->
+        if (config.global.birthdaysFromCalendar) {
+            CalendarStyleRow(stringResource(R.string.google_birthdays), null, Color(config.global.googleBirthdayColor),
+                config.global.googleBirthdayPattern, { p -> update { it.copy(googleBirthdayPattern = p) } },
+                line = null)
+        }
+        // Birthday calendars are covered by the Google birthdays row above.
+        calendars.filterNot { it.isBirthdays }.forEach { cal ->
             CalendarStyleRow(
-                cal.name, cal.account, Color(if (cal.isBirthdays) config.global.birthdayColor else cal.color),
+                cal.name, cal.account, Color(cal.color),
                 fill = config.global.calendarPatterns[cal.id] ?: ChipPattern.NONE,
                 onFill = { p ->
                     update { it.copy(calendarPatterns = it.calendarPatterns.withDefault(cal.id, p, ChipPattern.NONE)) }
                 },
-                // Birthday calendars only have all-day entries, so no outlined chips.
-                line = if (cal.isBirthdays) null else config.global.calendarLineStyles[cal.id] ?: LineStyle.SOLID,
+                line = config.global.calendarLineStyles[cal.id] ?: LineStyle.SOLID,
                 onLine = { l ->
                     update { it.copy(calendarLineStyles = it.calendarLineStyles.withDefault(cal.id, l, LineStyle.SOLID)) }
                 },
@@ -177,3 +185,6 @@ private fun MainScreen() {
 /** Stores [value] for [key], dropping the entry when it is the [default]. */
 private fun <V> Map<Long, V>.withDefault(key: Long, value: V, default: V) =
     if (value == default) this - key else this + (key to value)
+
+/** Google Calendar's event colours plus the contacts pink. */
+private val BIRTHDAY_COLORS = listOf(CONTACT_BIRTHDAY_COLOR) + GooglePalette.eventColors

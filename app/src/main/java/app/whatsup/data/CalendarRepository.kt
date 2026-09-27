@@ -8,6 +8,7 @@ import android.provider.CalendarContract.Events
 import android.provider.CalendarContract.ExtendedProperties
 import android.provider.CalendarContract.Instances
 import app.whatsup.logic.GooglePalette
+import app.whatsup.model.BirthdaySource
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.EntryKind
 import java.time.Instant
@@ -126,6 +127,7 @@ class CalendarRepository(private val context: Context) {
                             eventId = c.getLong(0),
                             calendarId = c.getLong(6),
                             isHoliday = isHoliday(owner) || c.getLong(6) in extraHolidayIds,
+                            birthdaySource = if (isBirthdays(owner) || c.getLong(0) in googleBirthdays) BirthdaySource.GOOGLE else null,
                         )
                     )
                 }

@@ -9,6 +9,9 @@ enum class Density { COMPACT, COMFORTABLE }
 enum class BackgroundStyle { PER_CELL, SINGLE }
 enum class WeekendStyle { NONE, TINTED }
 
+/** Pink, as Chronos uses for birthdays. */
+const val CONTACT_BIRTHDAY_COLOR = 0xFFE91E63.toInt()
+
 @Serializable
 data class GlobalConfig(
     /** null = all visible calendars. */
@@ -19,14 +22,17 @@ data class GlobalConfig(
     val extraHolidayCalendarIds: Set<Long> = emptySet(),
     val birthdaysFromContacts: Boolean = true,
     val birthdaysFromCalendar: Boolean = true,
-    /** Colour of all birthdays; Google Calendar's birthday green by default (FR-B7). */
-    val birthdayColor: Int = GooglePalette.BIRTHDAY,
+    /** Birthdays from Contacts (FR-B7). */
+    val contactBirthdayColor: Int = CONTACT_BIRTHDAY_COLOR,
+    /** Google Calendar's birthdays; its birthday green, as in the Google Calendar app (FR-B7). */
+    val googleBirthdayColor: Int = GooglePalette.BIRTHDAY,
     /** Fill per calendar ID; calendars without an entry are solid. */
     val calendarPatterns: Map<Long, ChipPattern> = emptyMap(),
     /** Outline per calendar ID; calendars without an entry are solid. */
     val calendarLineStyles: Map<Long, LineStyle> = emptyMap(),
-    /** Contact birthdays belong to no calendar, so they have their own setting. */
+    /** Birthdays have their own patterns, per source, instead of their calendar's. */
     val contactBirthdayPattern: ChipPattern = ChipPattern.NONE,
+    val googleBirthdayPattern: ChipPattern = ChipPattern.NONE,
 )
 
 @Serializable

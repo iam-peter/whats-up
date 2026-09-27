@@ -1,6 +1,7 @@
 package app.whatsup.logic
 
 import app.whatsup.config.WidgetConfig
+import app.whatsup.model.BirthdaySource
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.ChipPattern
 import app.whatsup.model.EntryKind
@@ -47,7 +48,8 @@ class GridModelBuilderTest {
     private fun allDay(title: String, first: LocalDate, last: LocalDate = first) =
         CalendarEntry(EntryKind.ALL_DAY, title, 0, first, last, eventId = title.hashCode().toLong())
 
-    private fun birthday(name: String) = CalendarEntry(EntryKind.BIRTHDAY, name, 0, today)
+    private fun birthday(name: String, source: BirthdaySource = BirthdaySource.CONTACTS) =
+        CalendarEntry(EntryKind.BIRTHDAY, name, 0, today, birthdaySource = source)
 
     @Test fun `rolling grid starts on monday of current week`() {
         val model = build(emptyList())
@@ -164,5 +166,15 @@ class GridModelBuilderTest {
     @Test fun `every chip opens the day popup`() {
         val chips = build(listOf(timed("Standup", 9), allDay("Trash", today))).day(0, 3).chips
         assertTrue(chips.all { it.target == ChipTarget.InAppDay(today) })
+    }
+
+    @Test fun `birthdays from contacts and google stay separate`() {
+        val entries = listOf(
+            birthday("Anna"), birthday("Ben"),
+            birthday("Anna's birthday", BirthdaySource.GOOGLE).copy(color = 1),
+        )
+        val chips = build(entries, w = 800f).day(0, 3).chips
+        assertEquals(listOf("2 birthdays", "Anna's birthday"), chips.map { it.description })
+        assertEquals(1, chips[1].color)
     }
 }

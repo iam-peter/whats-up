@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.7
+Version: v1.8
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -239,9 +239,10 @@ combinations the presets offer.
     calendars and are marked with the extended property
     `shared:calendarProviderEventType = BIRTHDAY`.
 
-  These are **de-duplicated per person**. The match is by contact lookup
-  key where it is available, otherwise by normalised display name plus
-  date. Anniversaries and other contact dates are ignored (Q-12).
+  The sources are **kept apart** (v1.8, replaces Q-09's de-duplication):
+  a person in both shows up twice, so the user can see what to clean up.
+  Raw contacts of one person are still merged by lookup key. Anniversaries
+  and other contact dates are ignored (Q-12).
 - **FR-B2** Display (Q-10a): a monochrome cake icon (Material Icons
   "cake", tinted like the chip text), the name, and the age "(40)".
   The age is shown only if the birth year is known; year-less dates such
@@ -253,9 +254,11 @@ combinations the presets offer.
   age. The names are visible in the in-app day view and in TalkBack (D-3).
 - **FR-B5** `READ_CONTACTS` is requested only when the contacts source is
   enabled. Without it, only the birthday calendar is used.
-- **FR-B7** All birthdays share one colour, chosen from Google Calendar's
-  event colours; the default is Google Calendar's birthday green (Sage
-  `#33B679`), so the widget and Google Calendar look the same.
+- **FR-B7** Each source has its own colour, chosen from Google Calendar's
+  event colours or pink: contact birthdays are **pink** by default,
+  Google Calendar's birthdays its birthday **green** (Sage `#33B679`), so
+  they look the same as in Google Calendar. Several birthdays on one day
+  are grouped per source.
 - **FR-B6** The cake icon is a per-widget setting: always shown or never
   shown. It sits beside the text and narrows it; it is never dropped to
   make room.
@@ -296,8 +299,8 @@ combinations the presets offer.
     patterned chip uses the cell's text colour.
   - **Outline**, for outlined chips (timed events): solid, dashed or dotted.
     Birthday calendars have no timed events, so they only offer a fill.
-  - Contact birthdays belong to no calendar, so "Birthdays from contacts"
-    has its own fill setting.
+  - Birthdays have their own fill per source ("Birthdays from contacts",
+    "Google birthdays") instead of their calendar's.
   - Both settings are global (main screen), like the default calendars.
   - An aggregated birthday chip uses the fill of its first birthday.
   - Glance's tint keeps a drawable's own alpha, so dimmed chips (FR-E5) use
@@ -494,5 +497,6 @@ figures must be validated against primary sources before external use.
 | v1.5 | 25 September 2026 | Henning Gründl | Next-month days without cell background, thinner today border with inset header (FR-T2, FR-T4) — generated with Claude AI |
 | v1.6 | 25 September 2026 | Henning Gründl | Every widget tap opens a swipeable day popup (FR-I1, FR-I2, D-2) — generated with Claude AI |
 | v1.7 | 27 September 2026 | Henning Gründl | Colours converted to Google's current palette (FR-E4); Google birthday entries recognised (FR-B1); birthday colour setting, green by default (FR-B7) — generated with Claude AI |
+| v1.8 | 27 September 2026 | Henning Gründl | Birthday sources kept apart: contacts pink, Google green, own patterns, no de-duplication (FR-B1, FR-B7, FR-E6) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

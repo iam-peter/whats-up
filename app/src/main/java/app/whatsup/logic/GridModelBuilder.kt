@@ -172,15 +172,12 @@ class GridModelBuilder(
     ): List<Chip> {
         val (birthdays, events) = dayEntries.partition { it.kind == EntryKind.BIRTHDAY }
         val result = mutableListOf<Chip>()
-        when (birthdays.size) {
-            0 -> Unit
-            1 -> birthdays.single().let { b ->
-                result += birthdayChip(labels.birthdayText(b.title, b.age), b.color, b.pattern, day, isPast, m, cfg)
-            }
-            // Spec D-3: several birthdays are always aggregated.
-            else -> birthdays.first().let { b ->
-                result += birthdayChip(labels.birthdays(birthdays.size), b.color, b.pattern, day, isPast, m, cfg)
-            }
+        // One chip per source (contacts, then Google), so the sources stay apart (FR-B1).
+        birthdays.groupBy { it.birthdaySource }.toSortedMap(compareBy { it?.ordinal ?: Int.MAX_VALUE }).values.forEach { group ->
+            val b = group.first()
+            // Spec D-3: several birthdays are aggregated.
+            val text = if (group.size == 1) labels.birthdayText(b.title, b.age) else labels.birthdays(group.size)
+            result += birthdayChip(text, b.color, b.pattern, day, isPast, m, cfg)
         }
         events.mapTo(result) { eventChip(it, day, today, now, cfg, m).copy(dimmed = isPast || it.hasEnded(day, today, now)) }
         return result

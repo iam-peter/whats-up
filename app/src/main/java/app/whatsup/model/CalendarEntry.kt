@@ -6,6 +6,12 @@ import java.time.LocalDate
 enum class EntryKind { BIRTHDAY, ALL_DAY, TIMED }
 
 /**
+ * Where a birthday comes from. The sources are kept apart, so a person in
+ * both shows up twice and the user can see what to clean up.
+ */
+enum class BirthdaySource { CONTACTS, GOOGLE }
+
+/**
  * Fill of filled chips, assigned per calendar. NONE is solid colour; the
  * others alternate between the colour and transparent.
  */
@@ -36,6 +42,8 @@ data class CalendarEntry(
     val age: Int? = null,
     val pattern: ChipPattern = ChipPattern.NONE,
     val lineStyle: LineStyle = LineStyle.SOLID,
+    /** Only for birthdays. */
+    val birthdaySource: BirthdaySource? = null,
 ) {
     fun occursOn(day: LocalDate) = !day.isBefore(firstDay) && !day.isAfter(lastDay)
     val isMultiDay get() = lastDay.isAfter(firstDay)

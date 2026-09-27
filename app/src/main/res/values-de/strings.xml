@@ -60,5 +60,7 @@
     <string name="tomorrow">Morgen</string>
     <string name="yesterday">Gestern</string>
     <string name="no_entries">Keine Einträge</string>
-    <string name="birthday_color">Geburtstagsfarbe</string>
+    <string name="contact_birthday_color">Farbe der Kontakt-Geburtstage</string>
+    <string name="google_birthday_color">Farbe der Google-Geburtstage</string>
+    <string name="google_birthdays">Google-Geburtstage</string>
 </resources>

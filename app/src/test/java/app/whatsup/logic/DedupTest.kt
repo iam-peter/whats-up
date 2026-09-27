@@ -32,13 +32,4 @@ class DedupTest {
         val entries = listOf(holiday("Tag der Deutschen Einheit", 5), holiday("tag der deutschen einheit!", 5), normal)
         assertEquals(2, HolidayDeduplicator.apply(entries, null).size)
     }
-
-    @Test fun `contact birthdays replace birthday calendar entries`() {
-        val contact = CalendarEntry(EntryKind.BIRTHDAY, "Anna Muster", 0, oct3, age = 40)
-        val calendar = listOf(
-            CalendarEntry(EntryKind.BIRTHDAY, "Anna Muster's birthday", 0, oct3),
-            CalendarEntry(EntryKind.BIRTHDAY, "Ben", 0, oct3),
-        )
-        assertEquals(listOf("Anna Muster", "Ben"), BirthdayMerger.merge(listOf(contact), calendar).map { it.title })
-    }
 }
