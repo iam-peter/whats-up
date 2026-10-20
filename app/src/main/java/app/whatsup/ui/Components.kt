@@ -200,6 +200,11 @@ val ACCENT_COLORS = listOf(
     0xFF3F51B5, 0xFF1E88E5, 0xFF00897B, 0xFF43A047, 0xFFF9A825, 0xFFEF6C00, 0xFFE53935, 0xFF8E24AA, 0xFF757575,
 ).map { it.toInt() }
 
+/** Text colours offered when the text doesn't follow the system theme (FR-T7). */
+val TEXT_COLORS = listOf(
+    0xFFFFFFFF, 0xFFE0E0E0, 0xFF9E9E9E, 0xFF424242, 0xFF000000,
+).map { it.toInt() }
+
 @Composable
 fun ColorChoice(colors: List<Int>, selected: Int, onSelect: (Int) -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -209,7 +214,11 @@ fun ColorChoice(colors: List<Int>, selected: Int, onSelect: (Int) -> Unit) {
                 Modifier.size(32.dp)
                     .clip(CircleShape)
                     .background(Color(argb))
-                    .border(if (isSelected) 3.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                    .border(
+                        if (isSelected) 3.dp else 1.dp,
+                        if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
+                        CircleShape,
+                    )
                     .clickable { onSelect(argb) },
             )
         }

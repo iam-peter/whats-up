@@ -44,6 +44,8 @@
     <string name="birthday_icon">Birthday icon</string>
     <string name="event_times">Event times</string>
     <string name="accent_color">Accent colour</string>
+    <string name="text_color_follows_theme">Text colour follows system theme</string>
+    <string name="text_color">Text colour</string>
     <string name="calendar_app">Calendar app</string>
     <string name="system_default">System default</string>
     <string name="today_title">Today</string>

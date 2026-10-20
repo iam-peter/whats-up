@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.15
+Version: v1.16
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -360,6 +360,11 @@ combinations the presets offer.
   W4).
 - **FR-T6** Density is configurable: compact (default) or comfortable
   (Q-37).
+- **FR-T7** Text colour (v1.16): it follows the system theme (default),
+  or the user picks a fixed colour (white, three greys, black) that stays
+  the same in light and dark mode. This keeps the text readable on
+  see-through cells over the wallpaper (FR-T2). Text on solid chips stays
+  white, and today's date keeps the accent colour.
 
 ### 5.5 Interaction (I)
 
@@ -549,5 +554,6 @@ figures must be validated against primary sources before external use.
 | v1.13 | 27 September 2026 | Henning Gründl | "Hide duplicate holidays" and "Hide duplicate birthdays", both off by default (FR-D5, FR-B1) — generated with Claude AI |
 | v1.14 | 27 September 2026 | Henning Gründl | Holiday detection removed; generic "Hide duplicate events" (FR-D5); a settings page per calendar and birthday source (FR-C1) — generated with Claude AI |
 | v1.15 | 20 October 2026 | Henning Gründl | Opacity slider also for per-cell backgrounds: see-through day boxes as in Chronos (FR-T2) — generated with Claude AI |
+| v1.16 | 20 October 2026 | Henning Gründl | Text colour follows the system theme or is set by the user (FR-T7) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

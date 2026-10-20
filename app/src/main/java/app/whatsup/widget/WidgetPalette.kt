@@ -29,8 +29,10 @@ class WidgetPalette(context: Context, cfg: WidgetConfig) {
     val weekendCell: ColorProvider = DayNight(light.surfaceContainerHighest.copy(alpha = cellOpacity), dark.surfaceContainerHighest.copy(alpha = cellOpacity))
     /** Hour lines of the timelines; opaque, so they don't fade with the cells. */
     val gridLine: ColorProvider = DayNight(light.surfaceContainerHigh, dark.surfaceContainerHigh)
-    val onCell: ColorProvider = DayNight(light.onSurface, dark.onSurface)
-    val onCellDim: ColorProvider = DayNight(light.onSurface.copy(alpha = 0.45f), dark.onSurface.copy(alpha = 0.45f))
+    // A text colour set by the user is the same in light and dark mode (FR-T7).
+    val onCell: ColorProvider = cfg.textColor?.let { fixed(Color(it), 1f) } ?: DayNight(light.onSurface, dark.onSurface)
+    val onCellDim: ColorProvider = cfg.textColor?.let { fixed(Color(it), 0.45f) }
+        ?: DayNight(light.onSurface.copy(alpha = 0.45f), dark.onSurface.copy(alpha = 0.45f))
     // Custom accent when dynamic colours are off (FR-T1).
     val accent: ColorProvider = if (cfg.dynamicColors) DayNight(light.primary, dark.primary) else fixed(Color(cfg.accentColor), 1f)
     val onChip: ColorProvider = DayNight(Color.White, Color.White)

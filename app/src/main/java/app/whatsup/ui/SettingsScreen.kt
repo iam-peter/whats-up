@@ -280,6 +280,14 @@ private fun WidgetSection(config: AppConfig, cfg: WidgetConfig, calendars: List<
         Text(stringResource(R.string.accent_color), Modifier.padding(vertical = 6.dp))
         ColorChoice(ACCENT_COLORS, cfg.accentColor) { c -> update { copy(accentColor = c) } }
     }
+    // White when switched off, as Chronos draws its text.
+    SwitchRow(stringResource(R.string.text_color_follows_theme), cfg.textColor == null) { v ->
+        update { copy(textColor = if (v) null else TEXT_COLORS.first()) }
+    }
+    cfg.textColor?.let { color ->
+        Text(stringResource(R.string.text_color), Modifier.padding(vertical = 6.dp))
+        ColorChoice(TEXT_COLORS, color) { c -> update { copy(textColor = c) } }
+    }
     SwitchRow(stringResource(R.string.tint_weekends), cfg.weekendStyle == WeekendStyle.TINTED) { v ->
         update { copy(weekendStyle = if (v) WeekendStyle.TINTED else WeekendStyle.NONE) }
     }

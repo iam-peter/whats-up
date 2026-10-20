@@ -83,6 +83,11 @@ data class WidgetConfig(
     val dynamicColors: Boolean = true,
     /** Accent (today border, day number) when [dynamicColors] is off; ARGB. */
     val accentColor: Int = 0xFF3F51B5.toInt(),
+    /**
+     * Text on the cells; null = follows the system theme. A fixed colour keeps
+     * the text readable on see-through cells over the wallpaper (FR-T7).
+     */
+    val textColor: Int? = null,
     /** Day popup opens next to the tapped day (like Chronos) instead of centred (FR-I2). */
     val popupNextToDay: Boolean = true,
     /** Start time in front of timed events (FR-E3). */
