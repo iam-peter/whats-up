@@ -22,6 +22,9 @@
     <string name="density">Density</string>
     <string name="compact">Compact</string>
     <string name="comfortable">Comfortable</string>
+    <string name="edge_margin">Edge margin</string>
+    <string name="edge_narrow">Narrow</string>
+    <string name="edge_wide">Wide</string>
     <string name="background">Background</string>
     <string name="per_cell">Per cell</string>
     <string name="single">Single</string>

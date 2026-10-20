@@ -94,6 +94,12 @@ data class GridMetrics(
     val iconGapDp: Float,
     /** Width of one day column; bars are sized in multiples of it. */
     val cellWidthDp: Float = 0f,
+    /**
+     * Extra inset of the text in the widget's top corners (the first row's
+     * outer day headers, or the week numbers), so the rounded corner doesn't
+     * cut it when the edge margin is narrow (FR-T5).
+     */
+    val cornerInsetDp: Float = 0f,
 )
 
 data class GridModel(

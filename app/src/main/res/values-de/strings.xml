@@ -21,6 +21,9 @@
     <string name="density">Dichte</string>
     <string name="compact">Kompakt</string>
     <string name="comfortable">Großzügig</string>
+    <string name="edge_margin">Randabstand</string>
+    <string name="edge_narrow">Schmal</string>
+    <string name="edge_wide">Breit</string>
     <string name="background">Hintergrund</string>
     <string name="per_cell">Je Zelle</string>
     <string name="single">Einheitlich</string>

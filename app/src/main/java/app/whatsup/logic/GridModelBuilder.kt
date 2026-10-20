@@ -1,6 +1,7 @@
 package app.whatsup.logic
 
 import app.whatsup.config.Density
+import app.whatsup.config.EdgeMargin
 import app.whatsup.config.WidgetConfig
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.ChipPattern
@@ -34,13 +35,21 @@ class GridModelBuilder(
     }
 
     /**
-     * [cornerRadiusDp] is the launcher's widget corner radius; the outer
-     * padding keeps corner cells' content inside the rounded outline (FR-T5).
+     * [cornerRadiusDp] is the launcher's widget corner radius. A wide edge
+     * margin keeps all content inside the rounded outline; a narrow one only
+     * the text in the corners (FR-T5).
      */
-    fun metrics(cfg: WidgetConfig, narrow: Boolean, cornerRadiusDp: Float = 0f): GridMetrics {
+    fun metrics(cfg: WidgetConfig, narrow: Boolean, cornerRadiusDp: Float = 0f, edgeMargin: EdgeMargin = cfg.edgeMargin): GridMetrics {
         val comfortable = cfg.density == Density.COMFORTABLE
         val textSp = (if (comfortable) 12f else 11f) * cfg.textScale
         val chipVPadding = if (comfortable) 2f else 1f
+        // A corner of radius r intrudes about 0.3 r diagonally.
+        val cornerReach = cornerRadiusDp * 0.3f
+        val outerPadding = when (edgeMargin) {
+            EdgeMargin.WIDE -> maxOf(if (comfortable) 6f else 4f, cornerReach)
+            EdgeMargin.NARROW -> if (comfortable) 2f else 1f
+        }
+        val cornerInset = maxOf(0f, cornerReach - outerPadding)
         return GridMetrics(
             textSp = textSp,
             lineHeightDp = measurer.textHeightDp(textSp) + 2 * chipVPadding + 1f,
@@ -51,11 +60,12 @@ class GridModelBuilder(
             chipHPaddingDp = if (narrow) 1f else if (comfortable) 3f else 2f,
             chipVPaddingDp = chipVPadding,
             gapDp = if (comfortable) 2f else 1f,
-            // A corner of radius r intrudes about 0.3 r diagonally.
-            outerPaddingDp = maxOf(if (comfortable) 6f else 4f, cornerRadiusDp * 0.3f),
-            weekNumberWidthDp = if (cfg.showWeekNumbers) textSp * 1.6f else 0f,
+            outerPaddingDp = outerPadding,
+            // The week numbers take the left corner's inset in every row, so they line up.
+            weekNumberWidthDp = if (cfg.showWeekNumbers) textSp * 1.6f + cornerInset else 0f,
             iconSizeDp = textSp,
             iconGapDp = 2f,
+            cornerInsetDp = cornerInset,
         )
     }
 
@@ -99,8 +109,10 @@ class GridModelBuilder(
         val capacity = floor(contentHeight / m.lineHeightDp).toInt().coerceAtLeast(0)
 
         val sorted = entries.sortedWith(entryOrder)
+        // The bottom-left corner would cut the start of that cell's last line.
+        val cutCorner = m.cornerInsetDp > 0f && !cfg.showWeekNumbers
         val weeks = days.chunked(7).mapIndexed { index, week ->
-            buildWeek(week, index == 0, sorted, today, now, capacity, m, cfg, focusMonth)
+            buildWeek(week, index == 0, cutCorner && index == weekCount - 1, sorted, today, now, capacity, m, cfg, focusMonth)
         }
         return GridModel(weeks, m, cfg.showWeekNumbers)
     }
@@ -108,6 +120,7 @@ class GridModelBuilder(
     private fun buildWeek(
         days: List<LocalDate>,
         firstRow: Boolean,
+        cutCorner: Boolean,
         entries: List<CalendarEntry>,
         today: LocalDate,
         now: Instant,
@@ -154,7 +167,8 @@ class GridModelBuilder(
             for (column in bar.startColumn until bar.startColumn + bar.span) barLanes[column] = maxOf(barLanes[column], lane + 1)
         }
         val cells = days.mapIndexed { column, day ->
-            buildCell(day, firstRow, entries.filter { it.occursOn(day) && it !in barred }, today, now, capacity, barLanes[column], m, cfg, focusMonth)
+            val cellCapacity = if (cutCorner && column == 0) capacity - 1 else capacity
+            buildCell(day, firstRow, entries.filter { it.occursOn(day) && it !in barred }, today, now, cellCapacity, barLanes[column], m, cfg, focusMonth)
         }
         val weekNumber = if (cfg.showWeekNumbers) weekStart.get(WeekFields.ISO.weekOfWeekBasedYear()) else null
         return Week(cells, laneList, weekNumber)

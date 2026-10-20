@@ -1,5 +1,6 @@
 package app.whatsup.logic
 
+import app.whatsup.config.EdgeMargin
 import app.whatsup.config.WidgetConfig
 import app.whatsup.model.BirthdaySource
 import app.whatsup.model.CalendarEntry
@@ -168,6 +169,36 @@ class GridModelBuilderTest {
         val c = allDay("C", LocalDate.of(2026, 9, 25), LocalDate.of(2026, 9, 26))
         val week = build(listOf(a, b, c), h = 400f).weeks[0]
         assertEquals(listOf(1, 1, 2, 2, 1, 1, 0), week.days.map { it.barLanes })
+    }
+
+    @Test fun `narrow edge margin insets only the corner text`() {
+        val m = builder.metrics(WidgetConfig(), narrow = false, cornerRadiusDp = 28f)
+        assertEquals(1f, m.outerPaddingDp)
+        assertEquals(28f * 0.3f - 1f, m.cornerInsetDp, 0.001f)
+    }
+
+    @Test fun `wide edge margin pads the whole edge`() {
+        val m = builder.metrics(WidgetConfig(edgeMargin = EdgeMargin.WIDE), narrow = false, cornerRadiusDp = 28f)
+        assertEquals(28f * 0.3f, m.outerPaddingDp, 0.001f)
+        assertEquals(0f, m.cornerInsetDp)
+    }
+
+    @Test fun `week numbers take the corner inset`() {
+        val plain = builder.metrics(WidgetConfig(showWeekNumbers = true), narrow = false)
+        val rounded = builder.metrics(WidgetConfig(showWeekNumbers = true), narrow = false, cornerRadiusDp = 28f)
+        assertEquals(plain.weekNumberWidthDp + rounded.cornerInsetDp, rounded.weekNumberWidthDp, 0.001f)
+    }
+
+    @Test fun `bottom-left day gives up a line to a rounded corner`() {
+        // Monday 28 September is the bottom-left day of a two-week grid.
+        val monday = LocalDate.of(2026, 9, 28)
+        val many = (8..20).flatMap { listOf(timed("A $it", it, monday), timed("B $it", it, monday.plusDays(1))) }
+        fun chips(radius: Float, cfg: WidgetConfig = WidgetConfig()) =
+            builder.build(many, today, now, DayOfWeek.MONDAY, 400f, 180f, cfg, radius).weeks[1].days.let { it[0].chips.size to it[1].chips.size }
+        val (corner, next) = chips(28f)
+        assertEquals(next - 1, corner)
+        val (wideCorner, wideNext) = chips(28f, WidgetConfig(edgeMargin = EdgeMargin.WIDE))
+        assertEquals(wideNext, wideCorner)
     }
 
     @Test fun `past bars are dimmed`() {

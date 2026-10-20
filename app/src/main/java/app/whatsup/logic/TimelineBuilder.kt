@@ -1,5 +1,6 @@
 package app.whatsup.logic
 
+import app.whatsup.config.EdgeMargin
 import app.whatsup.config.WidgetConfig
 import app.whatsup.model.CalendarEntry
 import app.whatsup.model.ChipPattern
@@ -73,10 +74,11 @@ class TimelineBuilder(private val grid: GridModelBuilder, private val measurer: 
         cornerRadiusDp: Float = 0f,
         zone: ZoneId = ZoneId.systemDefault(),
     ): TimelineModel {
-        val m0 = grid.metrics(cfg, narrow = false, cornerRadiusDp)
+        // The hour labels run down the left edge into the bottom corner, so timelines keep the wide margin.
+        val m0 = grid.metrics(cfg, narrow = false, cornerRadiusDp, EdgeMargin.WIDE)
         val axisWidth = m0.textSp * 2.4f
         val cellWidth = (widthDp - 2 * m0.outerPaddingDp - axisWidth) / days.size
-        val m = grid.metrics(cfg, narrow = cellWidth < GridModelBuilder.NARROW_CELL_DP, cornerRadiusDp).copy(cellWidthDp = cellWidth)
+        val m = grid.metrics(cfg, narrow = cellWidth < GridModelBuilder.NARROW_CELL_DP, cornerRadiusDp, EdgeMargin.WIDE).copy(cellWidthDp = cellWidth)
         val sorted = entries.sortedWith(entryOrder)
         val timed = sorted.filter { it.kind == EntryKind.TIMED && it.start != null && it.end != null }
 

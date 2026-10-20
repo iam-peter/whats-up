@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.17
+Version: v1.18
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -358,8 +358,16 @@ combinations the presets offer.
   ISO week numbers are configurable, off by default (Q-21). The first day
   of the week follows the locale (Q-20).
 - **FR-T5** The widget honours `system_app_widget_background_radius` and
-  its inner padding. No content may overlap the rounded outline (fixes
-  W4).
+  its inner padding. No text may overlap the rounded outline (fixes W4).
+  The edge margin of the grid layouts is configurable (v1.18):
+  - **narrow** (default): the cells run to the edge, as in Chronos. Only
+    the text in the corners keeps clear of the outline: the first row's
+    outer day headers (or the week numbers) are inset, and the bottom-left
+    day has one entry line less. The launcher's corners round off the
+    corner cells' backgrounds.
+  - **wide**: the whole edge is padded by the corner's reach, so nothing
+    touches the outline. The timelines always use it, as their hour labels
+    run down the left edge into the bottom corner.
 - **FR-T6** Density is configurable: compact (default) or comfortable
   (Q-37).
 - **FR-T7** Text colour (v1.16): it follows the system theme (default),
@@ -558,5 +566,6 @@ figures must be validated against primary sources before external use.
 | v1.15 | 20 October 2026 | Henning Gründl | Opacity slider also for per-cell backgrounds: see-through day boxes as in Chronos (FR-T2) — generated with Claude AI |
 | v1.16 | 20 October 2026 | Henning Gründl | Text colour follows the system theme or is set by the user (FR-T7) — generated with Claude AI |
 | v1.17 | 20 October 2026 | Henning Gründl | Days without bars use the bar lanes' lines for their own entries (FR-E2) — generated with Claude AI |
+| v1.18 | 20 October 2026 | Henning Gründl | Edge margin setting, narrow by default: cells run to the widget edge, text keeps clear of the corners (FR-T5) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

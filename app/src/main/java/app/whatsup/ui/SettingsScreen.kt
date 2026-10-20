@@ -49,6 +49,7 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import app.whatsup.R
 import app.whatsup.config.AppConfig
 import app.whatsup.config.BackgroundStyle
+import app.whatsup.config.EdgeMargin
 import app.whatsup.config.CONTACT_BIRTHDAY_COLOR
 import app.whatsup.config.Density
 import app.whatsup.config.GlobalConfig
@@ -264,6 +265,13 @@ private fun WidgetSection(config: AppConfig, cfg: WidgetConfig, calendars: List<
     SectionTitle(stringResource(R.string.density))
     ChoiceRow(listOf(Density.COMPACT to stringResource(R.string.compact), Density.COMFORTABLE to stringResource(R.string.comfortable)), cfg.density) { d ->
         update { copy(density = d) }
+    }
+
+    if (cfg.layout in setOf(WidgetLayout.ROLLING_GRID, WidgetLayout.MONTH_GRID, WidgetLayout.GRID_AGENDA)) {
+        SectionTitle(stringResource(R.string.edge_margin))
+        ChoiceRow(listOf(EdgeMargin.NARROW to stringResource(R.string.edge_narrow), EdgeMargin.WIDE to stringResource(R.string.edge_wide)), cfg.edgeMargin) { e ->
+            update { copy(edgeMargin = e) }
+        }
     }
 
     SectionTitle(stringResource(R.string.background))

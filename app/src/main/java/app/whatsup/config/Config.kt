@@ -10,6 +10,13 @@ enum class Density { COMPACT, COMFORTABLE }
 enum class BackgroundStyle { PER_CELL, SINGLE }
 enum class WeekendStyle { NONE, TINTED }
 
+/**
+ * Space between the grid and the widget edge (FR-T5). NARROW runs the cells
+ * to the edge, like Chronos, and keeps only the text clear of the rounded
+ * corners; WIDE pads the whole edge by the corner's reach.
+ */
+enum class EdgeMargin { NARROW, WIDE }
+
 /** What a widget shows (spec section 4.1). */
 enum class WidgetLayout {
     ROLLING_GRID, MONTH_GRID, AGENDA, BIRTHDAYS, NEXT_UP,
@@ -70,6 +77,7 @@ data class WidgetConfig(
     val weeks: Int? = null,
     val textScale: Float = 1f,
     val density: Density = Density.COMPACT,
+    val edgeMargin: EdgeMargin = EdgeMargin.NARROW,
     val background: BackgroundStyle = BackgroundStyle.PER_CELL,
     val backgroundOpacity: Float = 1f,
     val weekendStyle: WeekendStyle = WeekendStyle.NONE,

@@ -129,7 +129,7 @@ fun WidgetContent(state: WidgetState) {
             val gridCfg = if (split) cfg.copy(weeks = cfg.weeks ?: 1) else cfg
             Column(combinedRoot(state, palette)) {
                 Box(GlanceModifier.fillMaxWidth().height(gridHeight.dp)) {
-                    DayGrid(grid.build(state.entries, state.today, state.now, fdow, size.width.value, gridHeight, gridCfg, 0f), state, palette, root = false)
+                    DayGrid(grid.build(state.entries, state.today, state.now, fdow, size.width.value, gridHeight, gridCfg, widgetCornerRadiusDp(context)), state, palette, root = false)
                 }
                 if (split) Box(GlanceModifier.fillMaxWidth().defaultWeight()) {
                     ListView(ListBuilder(labels).build(state.entries, state.today, state.now, cfg.lookAheadDays, cfg, birthdaysOnly = false), state, palette, root = false)
@@ -158,8 +158,8 @@ private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette
     var rootModifier = modifier
     if (state.config.background == BackgroundStyle.SINGLE) rootModifier = rootModifier.background(palette.background)
     Column(rootModifier.padding(m.outerPaddingDp.dp)) {
-        model.weeks.forEach { week ->
-            WeekView(week, model.showWeekNumbers, state, m, palette, GlanceModifier.fillMaxWidth().defaultWeight())
+        model.weeks.forEachIndexed { index, week ->
+            WeekView(week, index == 0, model.showWeekNumbers, state, m, palette, GlanceModifier.fillMaxWidth().defaultWeight())
         }
     }
 }
@@ -171,7 +171,7 @@ private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette
  * every lane of the week.
  */
 @Composable
-private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
+private fun WeekView(week: Week, firstWeek: Boolean, showWeekNumbers: Boolean, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
     val cfg = state.config
     val inset = (m.gapDp + m.cellPaddingDp).dp
     val weekNumberColumn = @Composable {
@@ -187,11 +187,18 @@ private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m
                 if (showWeekNumbers) {
                     Text(
                         week.weekNumber?.toString() ?: "",
-                        modifier = GlanceModifier.width(m.weekNumberWidthDp.dp),
+                        modifier = GlanceModifier.width(m.weekNumberWidthDp.dp).padding(start = m.cornerInsetDp.dp),
                         style = TextStyle(color = palette.onCellDim, fontSize = (m.textSp * 0.85f).sp, textAlign = TextAlign.Center),
                     )
                 }
-                week.days.forEach { DayHeader(it, m, palette, GlanceModifier.defaultWeight().padding(horizontal = inset + m.headerInsetDp.dp)) }
+                week.days.forEachIndexed { column, day ->
+                    // In the top corners the header moves clear of the rounded outline (FR-T5).
+                    val corner = if (firstWeek) m.cornerInsetDp.dp else 0.dp
+                    val start = if (column == 0 && !showWeekNumbers) corner else 0.dp
+                    val end = if (column == week.days.lastIndex) corner else 0.dp
+                    val padding = inset + m.headerInsetDp.dp
+                    DayHeader(day, m, palette, GlanceModifier.defaultWeight().padding(start = padding + start, end = padding + end))
+                }
             }
             week.lanes.forEach { LaneRow(it, weekNumberColumn, state, m, palette) }
         }
