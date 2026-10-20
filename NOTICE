@@ -4,3 +4,15 @@ Copyright 2026 Henning Gründl
 This product includes the "cake" icon from Material Icons by Google,
 licensed under the Apache License, Version 2.0
 (app/src/main/res/drawable/ic_cake.xml).
+
+This product includes the Kotlin standard library
+(Kotlin Compiler, Copyright 2010-2024 JetBrains s.r.o and respective
+authors and developers), licensed under the Apache License, Version 2.0.
+
+This product includes kotlinx.coroutines
+(Copyright 2016-2024 JetBrains s.r.o and contributors), licensed under
+the Apache License, Version 2.0.
+
+This product includes kotlinx.serialization
+(Copyright 2017-2019 JetBrains s.r.o and respective authors and
+developers), licensed under the Apache License, Version 2.0.
