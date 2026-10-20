@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.14
+Version: v1.15
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -344,7 +344,11 @@ combinations the presets offer.
 - **FR-T2** Background (Q-32), as the user chooses:
   - **per-cell backgrounds**; days of the months after today's have none,
     as in the Chronos month widget (v1.5, replaces the W5 fix), or
-  - **one background** with an opacity slider from 0 to 100 %.
+  - **one background**.
+
+  Either way an opacity slider from 0 to 100 % applies to it (default
+  100 %). With per-cell backgrounds it makes the day boxes see-through,
+  so the wallpaper shows through them as in Chronos (v1.15).
 - **FR-T3** One **global text scale** (Q-34).
 - **FR-T4** Today is marked with a thin (1 dp) **cell border** in the
   accent colour (Q-35); the day letter and number are inset so the border
@@ -544,5 +548,6 @@ figures must be validated against primary sources before external use.
 | v1.12 | 27 September 2026 | Henning Gründl | App and widget settings merged into one screen (FR-C1) — generated with Claude AI |
 | v1.13 | 27 September 2026 | Henning Gründl | "Hide duplicate holidays" and "Hide duplicate birthdays", both off by default (FR-D5, FR-B1) — generated with Claude AI |
 | v1.14 | 27 September 2026 | Henning Gründl | Holiday detection removed; generic "Hide duplicate events" (FR-D5); a settings page per calendar and birthday source (FR-C1) — generated with Claude AI |
+| v1.15 | 20 October 2026 | Henning Gründl | Opacity slider also for per-cell backgrounds: see-through day boxes as in Chronos (FR-T2) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

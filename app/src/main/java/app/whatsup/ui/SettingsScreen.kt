@@ -270,10 +270,9 @@ private fun WidgetSection(config: AppConfig, cfg: WidgetConfig, calendars: List<
     ChoiceRow(listOf(BackgroundStyle.PER_CELL to stringResource(R.string.per_cell), BackgroundStyle.SINGLE to stringResource(R.string.single)), cfg.background) { b ->
         update { copy(background = b) }
     }
-    if (cfg.background == BackgroundStyle.SINGLE) {
-        var opacity by remember(cfg.backgroundOpacity) { mutableFloatStateOf(cfg.backgroundOpacity) }
-        Slider(opacity, { opacity = it }, onValueChangeFinished = { update { copy(backgroundOpacity = opacity) } })
-    }
+    // Opacity of the one background, or of each day box (see-through, as in Chronos).
+    var opacity by remember(cfg.backgroundOpacity) { mutableFloatStateOf(cfg.backgroundOpacity) }
+    Slider(opacity, { opacity = it }, onValueChangeFinished = { update { copy(backgroundOpacity = opacity) } })
 
     SectionTitle(stringResource(R.string.appearance))
     SwitchRow(stringResource(R.string.dynamic_colors), cfg.dynamicColors) { v -> update { copy(dynamicColors = v) } }

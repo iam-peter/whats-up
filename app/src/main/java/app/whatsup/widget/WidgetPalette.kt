@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.glance.unit.ColorProvider
+import app.whatsup.config.BackgroundStyle
 import app.whatsup.config.WidgetConfig
 import androidx.glance.color.ColorProvider as DayNight
 
@@ -19,10 +20,15 @@ class WidgetPalette(context: Context, cfg: WidgetConfig) {
     private val light: ColorScheme = if (cfg.dynamicColors) dynamicLightColorScheme(context) else lightColorScheme()
     private val dark: ColorScheme = if (cfg.dynamicColors) dynamicDarkColorScheme(context) else darkColorScheme()
     private val opacity = cfg.backgroundOpacity.coerceIn(0f, 1f)
+    // With per-cell backgrounds the opacity applies to the day boxes, so the
+    // wallpaper shows through them as in Chronos (FR-T2).
+    private val cellOpacity = if (cfg.background == BackgroundStyle.PER_CELL) opacity else 1f
 
     val background: ColorProvider = DayNight(light.surface.copy(alpha = opacity), dark.surface.copy(alpha = opacity))
-    val cell: ColorProvider = DayNight(light.surfaceContainerHigh, dark.surfaceContainerHigh)
-    val weekendCell: ColorProvider = DayNight(light.surfaceContainerHighest, dark.surfaceContainerHighest)
+    val cell: ColorProvider = DayNight(light.surfaceContainerHigh.copy(alpha = cellOpacity), dark.surfaceContainerHigh.copy(alpha = cellOpacity))
+    val weekendCell: ColorProvider = DayNight(light.surfaceContainerHighest.copy(alpha = cellOpacity), dark.surfaceContainerHighest.copy(alpha = cellOpacity))
+    /** Hour lines of the timelines; opaque, so they don't fade with the cells. */
+    val gridLine: ColorProvider = DayNight(light.surfaceContainerHigh, dark.surfaceContainerHigh)
     val onCell: ColorProvider = DayNight(light.onSurface, dark.onSurface)
     val onCellDim: ColorProvider = DayNight(light.onSurface.copy(alpha = 0.45f), dark.onSurface.copy(alpha = 0.45f))
     // Custom accent when dynamic colours are off (FR-T1).

@@ -96,7 +96,7 @@ private fun HourGrid(model: TimelineModel, palette: WidgetPalette) {
             Column(GlanceModifier.fillMaxWidth()) {
                 chunk.forEach { hour ->
                     Column(GlanceModifier.fillMaxWidth().height(model.hourHeightDp.dp)) {
-                        Box(GlanceModifier.fillMaxWidth().height(1.dp).padding(start = model.axisWidthDp.dp).background(palette.cell)) {}
+                        Box(GlanceModifier.fillMaxWidth().height(1.dp).padding(start = model.axisWidthDp.dp).background(palette.gridLine)) {}
                         Text(
                             "%d".format(hour),
                             modifier = GlanceModifier.width(model.axisWidthDp.dp).padding(end = 3.dp),
