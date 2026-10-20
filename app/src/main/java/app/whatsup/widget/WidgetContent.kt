@@ -165,9 +165,10 @@ private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette
 }
 
 /**
- * A week is two layers (FR-E2): the day backgrounds, which take day taps,
- * and above them the headers, the bar lanes and the day entries. Bars need
- * the second layer because they cross the day columns.
+ * A week is three layers (FR-E2): the day backgrounds, which take day taps;
+ * the headers and bar lanes, as bars cross the day columns; and the day
+ * entries, each day starting below its own lowest bar rather than below
+ * every lane of the week.
  */
 @Composable
 private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
@@ -193,6 +194,10 @@ private fun WeekView(week: Week, showWeekNumbers: Boolean, state: WidgetState, m
                 week.days.forEach { DayHeader(it, m, palette, GlanceModifier.defaultWeight().padding(horizontal = inset + m.headerInsetDp.dp)) }
             }
             week.lanes.forEach { LaneRow(it, weekNumberColumn, state, m, palette) }
+        }
+        Column(GlanceModifier.fillMaxSize()) {
+            // As high as the header row above.
+            Spacer(GlanceModifier.height(inset + m.headerInsetDp.dp + m.headerHeightDp.dp))
             Row(GlanceModifier.fillMaxWidth().defaultWeight()) {
                 weekNumberColumn()
                 week.days.forEach { DayEntries(it, state, m, palette, GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = inset)) }
@@ -271,6 +276,7 @@ private fun LaneRow(bars: List<SpanBar>, weekNumberColumn: @Composable () -> Uni
 @Composable
 private fun DayEntries(cell: DayCell, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
     Column(modifier) {
+        if (cell.barLanes > 0) Spacer(GlanceModifier.height((cell.barLanes * m.lineHeightDp).dp))
         cell.chips.forEach { ChipView(it, state, m, palette) }
     }
 }

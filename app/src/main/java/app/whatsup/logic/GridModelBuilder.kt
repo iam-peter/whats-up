@@ -148,9 +148,13 @@ class GridModelBuilder(
             )
         }
         val laneList = lanes.indices.map { i -> bars.filter { it.first == i }.map { it.second }.sortedBy { it.startColumn } }
-        val cellCapacity = capacity - lanes.size
-        val cells = days.map { day ->
-            buildCell(day, firstRow, entries.filter { it.occursOn(day) && it !in barred }, today, now, cellCapacity, m, cfg, focusMonth)
+        // A day gives up entry lines only for the lanes down to its lowest bar.
+        val barLanes = IntArray(days.size)
+        bars.forEach { (lane, bar) ->
+            for (column in bar.startColumn until bar.startColumn + bar.span) barLanes[column] = maxOf(barLanes[column], lane + 1)
+        }
+        val cells = days.mapIndexed { column, day ->
+            buildCell(day, firstRow, entries.filter { it.occursOn(day) && it !in barred }, today, now, capacity, barLanes[column], m, cfg, focusMonth)
         }
         val weekNumber = if (cfg.showWeekNumbers) weekStart.get(WeekFields.ISO.weekOfWeekBasedYear()) else null
         return Week(cells, laneList, weekNumber)
@@ -163,6 +167,7 @@ class GridModelBuilder(
         today: LocalDate,
         now: Instant,
         capacity: Int,
+        barLanes: Int,
         m: GridMetrics,
         cfg: WidgetConfig,
         focusMonth: YearMonth?,
@@ -171,7 +176,7 @@ class GridModelBuilder(
         val candidates = chipCandidates(day, dayEntries, today, now, isPast, m, cfg)
         // Every entry is a single line (FR-L5); what doesn't fit becomes "+N",
         // shown in the day header so it doesn't take an entry line.
-        val fit = CellFitter.fit(candidates, capacity, maxLinesPerItem = 1, maxItems = MAX_CHIPS_PER_CELL, reserveOverflowLine = false) { 1 }
+        val fit = CellFitter.fit(candidates, capacity - barLanes, maxLinesPerItem = 1, maxItems = MAX_CHIPS_PER_CELL, reserveOverflowLine = false) { 1 }
         return DayCell(
             date = day,
             isToday = day == today,
@@ -182,6 +187,7 @@ class GridModelBuilder(
             chips = fit.visible.map { it.item },
             moreText = if (fit.hidden > 0) labels.more(fit.hidden) else null,
             description = labels.dayDescription(day, day == today, candidates.map { it.description }, 0),
+            barLanes = barLanes,
         )
     }
 

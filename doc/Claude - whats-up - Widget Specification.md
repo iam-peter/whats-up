@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.16
+Version: v1.17
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -291,15 +291,17 @@ combinations the presets offer.
 - **FR-E2** Multi-day all-day events are drawn as a **continuous bar**
   spanning the days (Q-26):
   - Each week gets bar lanes above the day entries; bars that don't
-    overlap share a lane, and each lane takes one entry line from every day
-    of that week. Bars start and end inside the cells and run to the edge
-    where the event continues into the previous or next week (square
-    corners there).
+    overlap share a lane. A day gives up one entry line per lane down to
+    the lowest bar that covers it, so days without bars start their
+    entries at the top (v1.17). Bars start and end inside the cells and
+    run to the edge where the event continues into the previous or next
+    week (square corners there).
   - If there are more overlapping bars than entry lines, the rest fall back
     to one chip per day.
-  - Glance only has equal weights, so a week is two layers: the day
-    backgrounds (which take day taps) and above them headers, lanes and
-    entries. Bars and the gaps between them get exact widths.
+  - Glance only has equal weights, so a week is three layers: the day
+    backgrounds (which take day taps), the headers and lanes, and the
+    entries, each day's starting below its own lowest bar. Bars and the
+    gaps between them get exact widths.
 - **FR-E3** Timed events are drawn as **outlined** chips in the event
   colour (Q-24).
   - The start time in front of the title is a per-widget option ("Event
@@ -555,5 +557,6 @@ figures must be validated against primary sources before external use.
 | v1.14 | 27 September 2026 | Henning Gründl | Holiday detection removed; generic "Hide duplicate events" (FR-D5); a settings page per calendar and birthday source (FR-C1) — generated with Claude AI |
 | v1.15 | 20 October 2026 | Henning Gründl | Opacity slider also for per-cell backgrounds: see-through day boxes as in Chronos (FR-T2) — generated with Claude AI |
 | v1.16 | 20 October 2026 | Henning Gründl | Text colour follows the system theme or is set by the user (FR-T7) — generated with Claude AI |
+| v1.17 | 20 October 2026 | Henning Gründl | Days without bars use the bar lanes' lines for their own entries (FR-E2) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

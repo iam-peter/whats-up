@@ -149,12 +149,25 @@ class GridModelBuilderTest {
         assertEquals(listOf("B"), lanes[1].map { it.chip.description })
     }
 
-    @Test fun `bars take entry lines from every day of the week`() {
+    @Test fun `bars take entry lines only from the days they cover`() {
+        // Monday and Tuesday; Thursday (today) is not covered.
         val trip = allDay("Trip", LocalDate.of(2026, 9, 21), LocalDate.of(2026, 9, 22))
-        val many = (8..20).map { timed("Meeting $it", it) }
-        val without = build(many).day(0, 3).chips.size
-        val with = build(many + trip).day(0, 3).chips.size
-        assertEquals(without - 1, with)
+        val many = (8..20).map { timed("Meeting $it", it, LocalDate.of(2026, 9, 22)) } + (8..20).map { timed("Call $it", it) }
+        val without = build(many)
+        val with = build(many + trip)
+        assertEquals(without.day(0, 1).chips.size - 1, with.day(0, 1).chips.size)
+        assertEquals(1, with.day(0, 1).barLanes)
+        assertEquals(without.day(0, 3).chips.size, with.day(0, 3).chips.size)
+        assertEquals(0, with.day(0, 3).barLanes)
+    }
+
+    @Test fun `a day gives up lines down to its lowest bar`() {
+        // B is in the second lane on Wednesday and Thursday; C is in the first lane from Friday.
+        val a = allDay("A", LocalDate.of(2026, 9, 21), LocalDate.of(2026, 9, 23))
+        val b = allDay("B", LocalDate.of(2026, 9, 23), LocalDate.of(2026, 9, 24))
+        val c = allDay("C", LocalDate.of(2026, 9, 25), LocalDate.of(2026, 9, 26))
+        val week = build(listOf(a, b, c), h = 400f).weeks[0]
+        assertEquals(listOf(1, 1, 2, 2, 1, 1, 0), week.days.map { it.barLanes })
     }
 
     @Test fun `past bars are dimmed`() {

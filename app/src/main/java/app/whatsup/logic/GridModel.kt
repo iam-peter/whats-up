@@ -51,6 +51,11 @@ data class DayCell(
     val chips: List<Chip>,
     val moreText: String?,
     val description: String,
+    /**
+     * Bar lanes above this day's entries: down to the lowest bar that covers
+     * the day, so a day without bars uses the lanes' lines itself (FR-E2).
+     */
+    val barLanes: Int = 0,
 )
 
 /** A multi-day event drawn as one bar across the days it covers in a week (FR-E2). */
