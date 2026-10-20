@@ -120,4 +120,5 @@ WHATSUP_KEYSTORE=/path/to/whatsup-release.p12 WHATSUP_KEYSTORE_PASSWORD=... \
 
 Copyright 2026 Henning Gründl. Licensed under the
 [Apache License, Version 2.0](LICENSE); see [NOTICE](NOTICE) for
-attributions.
+attributions and [LICENCES.md](LICENCES.md) for the third-party
+software in the APK.
