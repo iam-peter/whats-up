@@ -3,7 +3,7 @@
 **Private project document**
 
 Date: 24 September 2026
-Version: v1.18
+Version: v1.19
 Author(s): Henning Gründl
 
 > **AI generation notice.** This document was produced with Claude AI
@@ -364,7 +364,8 @@ combinations the presets offer.
     the text in the corners keeps clear of the outline: the first row's
     outer day headers (or the week numbers) are inset, and the bottom-left
     day has one entry line less. The launcher's corners round off the
-    corner cells' backgrounds.
+    corner cells' backgrounds, and today's border in a corner cell follows
+    the rounded outline there instead of being cut by it (v1.19).
   - **wide**: the whole edge is padded by the corner's reach, so nothing
     touches the outline. The timelines always use it, as their hour labels
     run down the left edge into the bottom corner.
@@ -567,5 +568,6 @@ figures must be validated against primary sources before external use.
 | v1.16 | 20 October 2026 | Henning Gründl | Text colour follows the system theme or is set by the user (FR-T7) — generated with Claude AI |
 | v1.17 | 20 October 2026 | Henning Gründl | Days without bars use the bar lanes' lines for their own entries (FR-E2) — generated with Claude AI |
 | v1.18 | 20 October 2026 | Henning Gründl | Edge margin setting, narrow by default: cells run to the widget edge, text keeps clear of the corners (FR-T5) — generated with Claude AI |
+| v1.19 | 3 November 2026 | Henning Gründl | Today's border follows the widget's rounded corners (FR-T5) — generated with Claude AI |
 
 <sub>Generated with Claude AI — validate before use.</sub>

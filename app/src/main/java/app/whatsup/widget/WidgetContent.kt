@@ -3,6 +3,7 @@ package app.whatsup.widget
 import android.appwidget.AppWidgetManager
 import android.app.PendingIntent
 import android.content.Context
+import android.view.View
 import android.widget.RemoteViews
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
@@ -129,7 +130,7 @@ fun WidgetContent(state: WidgetState) {
             val gridCfg = if (split) cfg.copy(weeks = cfg.weeks ?: 1) else cfg
             Column(combinedRoot(state, palette)) {
                 Box(GlanceModifier.fillMaxWidth().height(gridHeight.dp)) {
-                    DayGrid(grid.build(state.entries, state.today, state.now, fdow, size.width.value, gridHeight, gridCfg, widgetCornerRadiusDp(context)), state, palette, root = false)
+                    DayGrid(grid.build(state.entries, state.today, state.now, fdow, size.width.value, gridHeight, gridCfg, widgetCornerRadiusDp(context)), state, palette, root = false, roundedBottom = !split)
                 }
                 if (split) Box(GlanceModifier.fillMaxWidth().defaultWeight()) {
                     ListView(ListBuilder(labels).build(state.entries, state.today, state.now, cfg.lookAheadDays, cfg, birthdaysOnly = false), state, palette, root = false)
@@ -150,8 +151,9 @@ fun WidgetContent(state: WidgetState) {
     }
 }
 
+/** [roundedBottom]: the grid's bottom corners are the widget's, not another block's edge. */
 @Composable
-private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette, root: Boolean = true) {
+private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette, root: Boolean = true, roundedBottom: Boolean = true) {
     val m = model.metrics
     var modifier = GlanceModifier.fillMaxSize()
     if (root) modifier = modifier.appWidgetBackground().cornerRadius(android.R.dimen.system_app_widget_background_radius)
@@ -159,7 +161,8 @@ private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette
     if (state.config.background == BackgroundStyle.SINGLE) rootModifier = rootModifier.background(palette.background)
     Column(rootModifier.padding(m.outerPaddingDp.dp)) {
         model.weeks.forEachIndexed { index, week ->
-            WeekView(week, index == 0, model.showWeekNumbers, state, m, palette, GlanceModifier.fillMaxWidth().defaultWeight())
+            val lastWeek = roundedBottom && index == model.weeks.lastIndex
+            WeekView(week, index == 0, lastWeek, model.showWeekNumbers, state, m, palette, GlanceModifier.fillMaxWidth().defaultWeight())
         }
     }
 }
@@ -171,16 +174,24 @@ private fun DayGrid(model: GridModel, state: WidgetState, palette: WidgetPalette
  * every lane of the week.
  */
 @Composable
-private fun WeekView(week: Week, firstWeek: Boolean, showWeekNumbers: Boolean, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
+private fun WeekView(week: Week, firstWeek: Boolean, lastWeek: Boolean, showWeekNumbers: Boolean, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
     val cfg = state.config
     val inset = (m.gapDp + m.cellPaddingDp).dp
+    val rtl = LocalContext.current.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
     val weekNumberColumn = @Composable {
         if (showWeekNumbers) Spacer(GlanceModifier.width(m.weekNumberWidthDp.dp))
     }
     Box(modifier) {
         Row(GlanceModifier.fillMaxSize()) {
             weekNumberColumn()
-            week.days.forEach { DayBackground(it, state, m, palette, GlanceModifier.defaultWeight().fillMaxHeight()) }
+            week.days.forEachIndexed { column, day ->
+                val outline = if (day.isToday) {
+                    todayOutline(column, week.days.lastIndex, firstWeek, lastWeek, showWeekNumbers, m.cornerInsetDp, rtl)
+                } else {
+                    R.drawable.today_outline
+                }
+                DayBackground(day, outline, state, m, palette, GlanceModifier.defaultWeight().fillMaxHeight())
+            }
         }
         Column(GlanceModifier.fillMaxSize()) {
             Row(GlanceModifier.fillMaxWidth().padding(top = inset + m.headerInsetDp.dp)) {
@@ -214,7 +225,7 @@ private fun WeekView(week: Week, firstWeek: Boolean, showWeekNumbers: Boolean, s
 }
 
 @Composable
-private fun DayBackground(cell: DayCell, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
+private fun DayBackground(cell: DayCell, @DrawableRes outline: Int, state: WidgetState, m: GridMetrics, palette: WidgetPalette, modifier: GlanceModifier) {
     val cfg = state.config
     val context = LocalContext.current
     var body = GlanceModifier.fillMaxSize()
@@ -229,12 +240,45 @@ private fun DayBackground(cell: DayCell, state: WidgetState, m: GridMetrics, pal
         Box(body) {
             if (cell.isToday) {
                 // Spec Q-35: today is marked with a cell border.
-                Box(GlanceModifier.fillMaxSize().background(ImageProvider(R.drawable.today_outline), colorFilter = ColorFilter.tint(palette.accent))) {}
+                Box(GlanceModifier.fillMaxSize().background(ImageProvider(outline), colorFilter = ColorFilter.tint(palette.accent))) {}
             }
             // The whole cell opens the day popup (FR-I1). Entries on top don't take
             // taps, so the tap reaches this view wherever it lands in the day.
             AndroidRemoteViews(dayTapTarget(context, cell.date, state.appWidgetId), GlanceModifier.fillMaxSize())
         }
+    }
+}
+
+/**
+ * The today border of a cell in one of the widget's corners follows the
+ * launcher's rounded outline there, which would otherwise cut it off (FR-T4,
+ * FR-T5). Only with the narrow edge margin ([cornerInsetDp] > 0) do cells
+ * reach the corners. Rows mirror in right-to-left locales ([rtl]), so the
+ * first day then sits at the right edge.
+ */
+@DrawableRes
+internal fun todayOutline(
+    column: Int,
+    lastColumn: Int,
+    firstWeek: Boolean,
+    lastWeek: Boolean,
+    showWeekNumbers: Boolean,
+    cornerInsetDp: Float,
+    rtl: Boolean,
+): Int {
+    if (cornerInsetDp <= 0f) return R.drawable.today_outline
+    val atStart = column == 0 && !showWeekNumbers
+    val atEnd = column == lastColumn
+    val left = if (rtl) atEnd else atStart
+    val right = if (rtl) atStart else atEnd
+    return when {
+        left && firstWeek && lastWeek -> R.drawable.today_outline_left
+        right && firstWeek && lastWeek -> R.drawable.today_outline_right
+        left && firstWeek -> R.drawable.today_outline_top_left
+        right && firstWeek -> R.drawable.today_outline_top_right
+        left && lastWeek -> R.drawable.today_outline_bottom_left
+        right && lastWeek -> R.drawable.today_outline_bottom_right
+        else -> R.drawable.today_outline
     }
 }
 
