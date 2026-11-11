@@ -4,6 +4,13 @@ An Android home-screen widget that shows your calendar events and
 birthdays at a glance. It is modelled on the Chronos month widget but
 fixes its rendering problems and makes the layout more configurable.
 
+<p>
+  <img src="doc/screenshots/widget.png" alt="The widget showing two weeks: timed events in outlined chips, all-day events filled, a trip and the autumn break as bars across their days, and birthdays with a cake icon" width="520">
+  <img src="doc/screenshots/settings.png" alt="The settings screen with a live preview of the widget above the layout, weeks, text size, density and edge margin options" width="240">
+</p>
+
+<sub>Demo calendar on an emulator.</sub>
+
 ## Features
 
 - **Layouts:** rolling weeks (from the current week; 1–6 weeks by
